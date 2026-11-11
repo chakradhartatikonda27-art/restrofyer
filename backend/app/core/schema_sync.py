@@ -7,6 +7,10 @@ def ensure_schema_columns(engine: Engine) -> None:
     Idempotently adds newly introduced columns when running against an existing
     local SQLite or PostgreSQL database without wiping previously seeded records.
     """
+    is_pg = engine.dialect.name == "postgresql"
+    bool_true = "TRUE" if is_pg else "1"
+    bool_false = "FALSE" if is_pg else "0"
+
     migrations = [
         ("menus", "branch_id", "VARCHAR(36)"),
         ("menus", "display_order", "INTEGER DEFAULT 0"),
@@ -20,11 +24,11 @@ def ensure_schema_columns(engine: Engine) -> None:
         ("menu_items", "branch_id", "VARCHAR(36)"),
         ("menu_items", "cuisine_id", "VARCHAR(36)"),
         ("menu_items", "display_order", "INTEGER DEFAULT 0"),
-        ("menu_items", "show_on_customer_site", "BOOLEAN DEFAULT 1 NOT NULL"),
+        ("menu_items", "show_on_customer_site", f"BOOLEAN DEFAULT {bool_true} NOT NULL"),
         ("menu_items", "food_type", "VARCHAR(20) DEFAULT 'VEG' NOT NULL"),
         ("menu_items", "order_channels", "TEXT"),
         ("menu_items", "spice_levels", "TEXT"),
-        ("menu_items", "is_combo", "BOOLEAN DEFAULT 0 NOT NULL"),
+        ("menu_items", "is_combo", f"BOOLEAN DEFAULT {bool_false} NOT NULL"),
         ("restaurant_tables", "assigned_menu_id", "VARCHAR(36)"),
     ]
 
@@ -43,7 +47,7 @@ def ensure_schema_columns(engine: Engine) -> None:
         if "menu_items" in existing_tables:
             conn.execute(
                 text(
-                    "UPDATE menu_items SET food_type = 'NON_VEG' "
-                    "WHERE is_veg = 0 AND (food_type IS NULL OR food_type = 'VEG')"
+                    f"UPDATE menu_items SET food_type = 'NON_VEG' "
+                    f"WHERE is_veg = {bool_false} AND (food_type IS NULL OR food_type = 'VEG')"
                 )
             )

@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal, engine, Base
@@ -29,8 +30,17 @@ from app.models.order import Order, OrderItem, Invoice, Payment
 from app.models.inventory import InventoryCategory, InventoryItem, StockMovement, Recipe, RecipeItem
 from app.models.procurement import Supplier, PurchaseOrder, PurchaseOrderItem, GoodsReceipt
 from app.models.crm import Customer, CustomerAddress, LoyaltyAccount, LoyaltyTransaction
-from app.models.financial import CashRegister, CashRegisterSession, Expense
+from app.models.financial import CashRegister, CashRegisterSession, CashTransaction, Expense
 from app.models.delivery import DeliveryExecutive, DeliveryOrder
+
+
+SEED_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+
+
+def _seed_id(key: str) -> str:
+    """Deterministic UUIDv5 so serverless cold starts preserve stable seeded auth IDs."""
+    return str(uuid.uuid5(SEED_NAMESPACE, key))
+
 
 def seed_database():
     Base.metadata.create_all(bind=engine)
@@ -46,7 +56,7 @@ def seed_database():
 
         # 1. Platform Super Admin
         super_admin = PlatformUser(
-            id=str(uuid.uuid4()),
+            id=_seed_id("platform:admin@restaurantsaas.com"),
             email="admin@restaurantsaas.com",
             password_hash=get_password_hash("SuperAdmin@2026!"),
             full_name="Platform Super Administrator",
@@ -57,7 +67,7 @@ def seed_database():
 
         # 2. Subscription Plans
         plan_starter = SubscriptionPlan(
-            id=str(uuid.uuid4()),
+            id=_seed_id("plan:starter"),
             name="Starter Plan",
             code="starter",
             description="Essential POS, Menu, and Billing for single location restaurants and cafes.",
@@ -69,7 +79,7 @@ def seed_database():
             features={"pos": True, "tables": True, "invoicing": True, "reports_basic": True}
         )
         plan_growth = SubscriptionPlan(
-            id=str(uuid.uuid4()),
+            id=_seed_id("plan:growth"),
             name="Growth Plan",
             code="growth",
             description="Complete restaurant operations with KDS, Inventory, and CRM for growing bistros.",
@@ -81,7 +91,7 @@ def seed_database():
             features={"pos": True, "tables": True, "kds": True, "inventory": True, "crm": True, "reports_sales": True}
         )
         plan_pro = SubscriptionPlan(
-            id=str(uuid.uuid4()),
+            id=_seed_id("plan:pro"),
             name="Professional Plan",
             code="pro",
             description="Advanced multi-branch chain management with Recipe BOM, Loyalty Ledger, and QR Ordering.",
@@ -93,7 +103,7 @@ def seed_database():
             features={"pos": True, "tables": True, "kds": True, "inventory": True, "recipes": True, "loyalty": True, "qr_ordering": True, "delivery": True, "reports_financial": True}
         )
         plan_enterprise = SubscriptionPlan(
-            id=str(uuid.uuid4()),
+            id=_seed_id("plan:enterprise"),
             name="Enterprise Global",
             code="enterprise",
             description="Unlimited locations, custom integrations, API access, and dedicated support.",
@@ -107,9 +117,9 @@ def seed_database():
         db.add_all([plan_starter, plan_growth, plan_pro, plan_enterprise])
         db.flush()
 
-        # 3. Tenant 1: Bella Napoli Trattoria (Flagship Multi-branch Italian)
+        # 3. Tenant 1: Bella Napoli Trattoria (Flagship Multi-branch)
         tenant_1 = Tenant(
-            id=str(uuid.uuid4()),
+            id=_seed_id("tenant:bella-napoli"),
             name="Bella Napoli Trattoria",
             slug="bella-napoli",
             business_type="Fine Dining Italian",
@@ -127,7 +137,7 @@ def seed_database():
 
         # Subscription for Tenant 1
         sub_1 = Subscription(
-            id=str(uuid.uuid4()),
+            id=_seed_id("sub:bella-napoli"),
             tenant_id=tenant_1.id,
             plan_id=plan_pro.id,
             status="Active",
@@ -139,7 +149,7 @@ def seed_database():
 
         # Branches for Tenant 1
         branch_1a = Branch(
-            id=str(uuid.uuid4()),
+            id=_seed_id("branch:bella-napoli:BN-JH-01"),
             tenant_id=tenant_1.id,
             name="Bella Napoli - Jubilee Hills",
             code="BN-JH-01",
@@ -155,7 +165,7 @@ def seed_database():
             is_active=True
         )
         branch_1b = Branch(
-            id=str(uuid.uuid4()),
+            id=_seed_id("branch:bella-napoli:BN-HC-02"),
             tenant_id=tenant_1.id,
             name="Bella Napoli - Hitec City",
             code="BN-HC-02",
@@ -175,7 +185,7 @@ def seed_database():
 
         # Users for Tenant 1
         user_owner = User(
-            id=str(uuid.uuid4()),
+            id=_seed_id("user:marco@bellanapoli.com"),
             tenant_id=tenant_1.id,
             email="marco@bellanapoli.com",
             password_hash=get_password_hash("Owner@123"),
@@ -186,7 +196,7 @@ def seed_database():
             is_active=True
         )
         user_manager = User(
-            id=str(uuid.uuid4()),
+            id=_seed_id("user:sophia@bellanapoli.com"),
             tenant_id=tenant_1.id,
             email="sophia@bellanapoli.com",
             password_hash=get_password_hash("Manager@123"),
@@ -197,7 +207,7 @@ def seed_database():
             is_active=True
         )
         user_cashier = User(
-            id=str(uuid.uuid4()),
+            id=_seed_id("user:lucas@bellanapoli.com"),
             tenant_id=tenant_1.id,
             email="lucas@bellanapoli.com",
             password_hash=get_password_hash("Cashier@123"),
@@ -208,7 +218,7 @@ def seed_database():
             is_active=True
         )
         user_waiter = User(
-            id=str(uuid.uuid4()),
+            id=_seed_id("user:giovanni@bellanapoli.com"),
             tenant_id=tenant_1.id,
             email="giovanni@bellanapoli.com",
             password_hash=get_password_hash("Waiter@123"),
@@ -219,7 +229,7 @@ def seed_database():
             is_active=True
         )
         user_chef = User(
-            id=str(uuid.uuid4()),
+            id=_seed_id("user:mario@bellanapoli.com"),
             tenant_id=tenant_1.id,
             email="mario@bellanapoli.com",
             password_hash=get_password_hash("Chef@123"),
@@ -661,9 +671,9 @@ def seed_database():
         db.add(KOTItem(id=str(uuid.uuid4()), kot_id=kot_live.id, order_item_id=oi_live1.id, item_name="Tartufo & Funghi Pizza", quantity=1, notes="Extra crispy crust", status="Preparing"))
         db.add(KOTItem(id=str(uuid.uuid4()), kot_id=kot_live.id, order_item_id=oi_live2.id, item_name="Fettuccine ai Funghi", quantity=1, status="Preparing"))
 
-        # 4. Tenant 2: Spice Symphony Bistro (To prove multi-tenant isolation!)
+        # 4. Tenant 2: Spice Symphony Bistro (Full End-to-End Demo Restaurant)
         tenant_2 = Tenant(
-            id=str(uuid.uuid4()),
+            id=_seed_id("tenant:spice-symphony"),
             name="Spice Symphony Bistro",
             slug="spice-symphony",
             business_type="Modern Indian Bistro",
@@ -673,72 +683,75 @@ def seed_database():
             country="India",
             currency="INR",
             timezone="Asia/Kolkata",
-            onboarding_completed=True
+            onboarding_completed=True,
+            onboarding_step=5,
         )
         db.add(tenant_2)
         db.flush()
 
         sub_2 = Subscription(
-            id=str(uuid.uuid4()),
+            id=_seed_id("sub:spice-symphony"),
             tenant_id=tenant_2.id,
-            plan_id=plan_growth.id,
+            plan_id=plan_pro.id,
             status="Active",
-            current_period_start=datetime.utcnow(),
-            current_period_end=datetime.utcnow() + timedelta(days=30)
+            billing_cycle="monthly",
+            current_period_start=datetime.utcnow() - timedelta(days=10),
+            current_period_end=datetime.utcnow() + timedelta(days=20),
         )
         db.add(sub_2)
 
         branch_2 = Branch(
-            id=str(uuid.uuid4()),
+            id=_seed_id("branch:spice-symphony:SS-HYD-01"),
             tenant_id=tenant_2.id,
             name="hyderabad",
             code="SS-HYD-01",
+            phone="+91 40 2335 8899",
+            email="banjarahills@spicesymphony.com",
             address="Road No 12, Banjara Hills",
             city="Hyderabad",
             state="Telangana",
+            postal_code="500034",
             tax_rate=Decimal("5.00"),
+            service_charge_rate=Decimal("0.00"),
             currency="INR",
-            is_active=True
+            is_active=True,
         )
         branch_2b = Branch(
-            id=str(uuid.uuid4()),
+            id=_seed_id("branch:spice-symphony:SS-HYD-02"),
             tenant_id=tenant_2.id,
             name="Hyderabad - Gachibowli",
             code="SS-HYD-02",
+            phone="+91 40 4901 7766",
+            email="gachibowli@spicesymphony.com",
             address="Financial District",
             city="Hyderabad",
             state="Telangana",
+            postal_code="500032",
             tax_rate=Decimal("5.00"),
+            service_charge_rate=Decimal("0.00"),
             currency="INR",
-            is_active=True
+            is_active=True,
         )
         db.add_all([branch_2, branch_2b])
         db.flush()
 
         user_tenant2 = User(
-            id=str(uuid.uuid4()),
+            id=_seed_id("user:owner@spicesymphony.com"),
             tenant_id=tenant_2.id,
             email="owner@spicesymphony.com",
             password_hash=get_password_hash("Owner@456"),
             full_name="Rajesh Verma",
             role="TENANT_OWNER",
+            phone="+91 98111 22233",
             branch_id=branch_2.id,
-            is_active=True
+            is_active=True,
         )
         db.add(user_tenant2)
         db.flush()
 
-        # Dining area & tables for Spice Symphony (for Assign Menu to Table demos)
-        ss_area = DiningArea(id=str(uuid.uuid4()), tenant_id=tenant_2.id, branch_id=branch_2.id, name="Main Dining Hall", display_order=1)
-        db.add(ss_area)
-        db.flush()
-        db.add_all([
-            RestaurantTable(id=str(uuid.uuid4()), tenant_id=tenant_2.id, branch_id=branch_2.id, area_id=ss_area.id, table_number="T-01", name="Andhra Courtyard 1", capacity=4, status="Available", qr_code_token="QR-SPICE-T01"),
-            RestaurantTable(id=str(uuid.uuid4()), tenant_id=tenant_2.id, branch_id=branch_2.id, area_id=ss_area.id, table_number="T-02", name="Nizam Booth 2", capacity=6, status="Available", qr_code_token="QR-SPICE-T02"),
-        ])
-
-        # Rich Hyderabad Menu Hierarchy matching Restofyer screenshot
+        # Full Indian Menu Hierarchy + End-to-End Operational Data
         seed_spice_symphony_menus(db, tenant_2.id, branch_2.id)
+        seed_spice_symphony_full_operations(db, tenant_2.id, branch_2.id, branch_2b.id, user_tenant2)
 
         db.commit()
         print("✅ Database successfully seeded with SaaS multi-tenant enterprise data!")
@@ -1157,8 +1170,1389 @@ def _purge_non_indian_and_legacy_records(db: Session, tenant_id: str):
     db.flush()
 
 
+def _ss_find_dish(menu_items: list, *keywords: str) -> MenuItem:
+    """Finds the best matching seeded MenuItem by partial name match, falling back cleanly."""
+    for kw in keywords:
+        kw_low = kw.lower()
+        for item in menu_items:
+            if kw_low in item.name.lower():
+                return item
+    return menu_items[0]
+
+
+def _ensure_ss_staff(
+    db: Session,
+    tenant_id: str,
+    branch_1_id: str,
+    branch_2_id: Optional[str],
+    owner_user: Optional[User],
+) -> tuple[User, User, User]:
+    """Ensures Spice Symphony staff accounts and multi-branch memberships exist."""
+    staff_specs = [
+        ("manager@spicesymphony.com", "Manager@456", "Anitha Reddy", "BRANCH_MANAGER", "+91 98111 22234", branch_1_id),
+        ("cashier@spicesymphony.com", "Cashier@456", "Karthik Nair", "CASHIER", "+91 98111 22235", branch_1_id),
+        ("waiter@spicesymphony.com", "Waiter@456", "Suresh Goud", "WAITER", "+91 98111 22236", branch_1_id),
+        ("chef@spicesymphony.com", "Chef@456", "Chef Ramesh Babu", "KITCHEN_MANAGER", "+91 98111 22237", branch_1_id),
+    ]
+    if branch_2_id:
+        staff_specs.append(
+            ("gachibowli.cashier@spicesymphony.com", "Cashier@456", "Deepika Rao", "CASHIER", "+91 98111 22238", branch_2_id)
+        )
+
+    staff_by_email: dict[str, User] = {}
+    for email, raw_pw, full_name, role, phone, assigned_branch_id in staff_specs:
+        existing = db.query(User).filter(User.email == email).first()
+        if existing:
+            staff_by_email[email] = existing
+            continue
+        user_obj = User(
+            id=_seed_id(f"ss-op:{tenant_id}:user:{email}"),
+            tenant_id=tenant_id,
+            email=email,
+            password_hash=get_password_hash(raw_pw),
+            full_name=full_name,
+            role=role,
+            phone=phone,
+            branch_id=assigned_branch_id,
+            is_active=True,
+        )
+        db.add(user_obj)
+        staff_by_email[email] = user_obj
+    db.flush()
+
+    all_branches = [b for b in [branch_1_id, branch_2_id] if b]
+    multi_branch_users = [u for u in [owner_user, staff_by_email.get("manager@spicesymphony.com")] if u]
+    for u in multi_branch_users:
+        for b_id in all_branches:
+            has_membership = db.query(BranchMembership).filter(
+                BranchMembership.user_id == u.id,
+                BranchMembership.branch_id == b_id,
+            ).first()
+            if not has_membership:
+                db.add(
+                    BranchMembership(
+                        id=_seed_id(f"ss-op:{tenant_id}:member:{u.id}:{b_id}"),
+                        tenant_id=tenant_id,
+                        user_id=u.id,
+                        branch_id=b_id,
+                        role=u.role,
+                    )
+                )
+    db.flush()
+
+    cashier_b1 = staff_by_email.get("cashier@spicesymphony.com") or owner_user
+    waiter_b1 = staff_by_email.get("waiter@spicesymphony.com") or owner_user
+    cashier_b2 = staff_by_email.get("gachibowli.cashier@spicesymphony.com") or cashier_b1
+    return cashier_b1, waiter_b1, cashier_b2
+
+
+def _ensure_ss_tables_and_reservations(
+    db: Session,
+    tenant_id: str,
+    branch_1_id: str,
+    branch_2_id: Optional[str],
+    default_menu_id: Optional[str],
+) -> tuple[dict[str, RestaurantTable], dict[str, RestaurantTable]]:
+    """Ensures dining areas, floor tables across both branches, and reservations exist."""
+    now = datetime.utcnow()
+
+    def _get_or_create_area(b_id: str, name: str, display_order: int) -> DiningArea:
+        area = db.query(DiningArea).filter(
+            DiningArea.tenant_id == tenant_id,
+            DiningArea.branch_id == b_id,
+            DiningArea.name == name,
+        ).first()
+        if area:
+            return area
+        area = DiningArea(
+            id=_seed_id(f"ss-op:{tenant_id}:area:{b_id}:{name}"),
+            tenant_id=tenant_id,
+            branch_id=b_id,
+            name=name,
+            display_order=display_order,
+        )
+        db.add(area)
+        db.flush()
+        return area
+
+    area_main = _get_or_create_area(branch_1_id, "Main Dining Hall", 1)
+    area_court = _get_or_create_area(branch_1_id, "Deccan Courtyard", 2)
+    area_vip = _get_or_create_area(branch_1_id, "Nizam Private Lounge", 3)
+
+    b1_specs = [
+        ("T-01", "Andhra Courtyard 1", 4, area_main.id, "Available", 40, 40, "QR-SPICE-T01", None),
+        ("T-02", "Nizam Booth 2", 6, area_main.id, "Occupied", 200, 40, "QR-SPICE-T02", now - timedelta(minutes=28)),
+        ("T-03", "Banjara Corner 3", 4, area_main.id, "Occupied", 360, 40, "QR-SS-HYD-T03", now - timedelta(minutes=14)),
+        ("T-04", "Charminar Family 4", 6, area_court.id, "Reserved", 40, 170, "QR-SS-HYD-T04", None),
+        ("T-05", "Golconda Terrace 5", 2, area_court.id, "Cleaning", 200, 170, "QR-SS-HYD-T05", None),
+        ("T-06", "Royal Diwan 6", 8, area_vip.id, "Available", 360, 170, "QR-SS-HYD-T06", None),
+    ]
+
+    b1_tables: dict[str, RestaurantTable] = {}
+    for tbl_no, name, cap, area_id, status_val, px, py, qr_tok, occ_since in b1_specs:
+        tbl = db.query(RestaurantTable).filter(
+            RestaurantTable.tenant_id == tenant_id,
+            RestaurantTable.branch_id == branch_1_id,
+            RestaurantTable.table_number == tbl_no,
+        ).first()
+        if tbl:
+            tbl.pos_x = px
+            tbl.pos_y = py
+            if not tbl.assigned_menu_id and default_menu_id:
+                tbl.assigned_menu_id = default_menu_id
+            b1_tables[tbl_no] = tbl
+            continue
+        safe_qr = qr_tok if not db.query(RestaurantTable).filter(RestaurantTable.qr_code_token == qr_tok).first() else f"QR-{tenant_id[:6]}-{branch_1_id[:4]}-{tbl_no}"
+        tbl = RestaurantTable(
+            id=_seed_id(f"ss-op:{tenant_id}:table:{branch_1_id}:{tbl_no}"),
+            tenant_id=tenant_id,
+            branch_id=branch_1_id,
+            area_id=area_id,
+            assigned_menu_id=default_menu_id,
+            table_number=tbl_no,
+            name=name,
+            capacity=cap,
+            status=status_val,
+            pos_x=px,
+            pos_y=py,
+            qr_code_token=safe_qr,
+            occupied_since=occ_since,
+        )
+        db.add(tbl)
+        b1_tables[tbl_no] = tbl
+    db.flush()
+
+    if db.query(Reservation).filter(Reservation.tenant_id == tenant_id, Reservation.branch_id == branch_1_id).count() == 0:
+        db.add_all([
+            Reservation(
+                id=_seed_id(f"ss-op:{tenant_id}:res:1"),
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                table_id=b1_tables["T-04"].id,
+                customer_name="Srinivasulu Raju",
+                customer_phone="+91 98480 44551",
+                customer_email="srinivas.raju@gmail.com",
+                party_size=6,
+                reservation_time=now + timedelta(hours=2),
+                status="Confirmed",
+                special_requests="Birthday dinner — keep T-04 decorated with candles",
+            ),
+            Reservation(
+                id=_seed_id(f"ss-op:{tenant_id}:res:2"),
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                table_id=b1_tables["T-02"].id,
+                customer_name="Priya Deshmukh",
+                customer_phone="+91 98492 77112",
+                customer_email="priya.deshmukh@outlook.com",
+                party_size=4,
+                reservation_time=now - timedelta(minutes=30),
+                status="CheckedIn",
+                special_requests="Medium spice Hyderabadi dum biryani requested",
+            ),
+            Reservation(
+                id=_seed_id(f"ss-op:{tenant_id}:res:3"),
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                table_id=b1_tables["T-06"].id,
+                customer_name="Arjun Malhotra",
+                customer_phone="+91 90005 33221",
+                customer_email="arjun.m@techcorp.in",
+                party_size=8,
+                reservation_time=now + timedelta(days=1, hours=4),
+                status="Confirmed",
+                special_requests="Corporate lunch — arrange Royal Diwan table",
+            ),
+            Reservation(
+                id=_seed_id(f"ss-op:{tenant_id}:res:4"),
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                table_id=None,
+                customer_name="Kavitha Menon",
+                customer_phone="+91 99851 66440",
+                customer_email="kavitha.menon@gmail.com",
+                party_size=2,
+                reservation_time=now + timedelta(hours=5),
+                status="Pending",
+                special_requests="Quiet courtyard seating preferred",
+            ),
+        ])
+
+    b2_tables: dict[str, RestaurantTable] = {}
+    if branch_2_id:
+        area_gcb = _get_or_create_area(branch_2_id, "Gachibowli Bistro Hall", 1)
+        b2_specs = [
+            ("T-01", "Cyber Lounge 1", 4, "Available", 60, 60, "QR-SS-GCB-T01", None),
+            ("T-02", "Financial Booth 2", 6, "Occupied", 240, 60, "QR-SS-GCB-T02", now - timedelta(minutes=18)),
+        ]
+        for tbl_no, name, cap, status_val, px, py, qr_tok, occ_since in b2_specs:
+            tbl = db.query(RestaurantTable).filter(
+                RestaurantTable.tenant_id == tenant_id,
+                RestaurantTable.branch_id == branch_2_id,
+                RestaurantTable.table_number == tbl_no,
+            ).first()
+            if not tbl:
+                safe_qr = qr_tok if not db.query(RestaurantTable).filter(RestaurantTable.qr_code_token == qr_tok).first() else f"QR-{tenant_id[:6]}-GCB-{tbl_no}"
+                tbl = RestaurantTable(
+                    id=_seed_id(f"ss-op:{tenant_id}:table:{branch_2_id}:{tbl_no}"),
+                    tenant_id=tenant_id,
+                    branch_id=branch_2_id,
+                    area_id=area_gcb.id,
+                    assigned_menu_id=default_menu_id,
+                    table_number=tbl_no,
+                    name=name,
+                    capacity=cap,
+                    status=status_val,
+                    pos_x=px,
+                    pos_y=py,
+                    qr_code_token=safe_qr,
+                    occupied_since=occ_since,
+                )
+                db.add(tbl)
+            b2_tables[tbl_no] = tbl
+        db.flush()
+
+        if db.query(Reservation).filter(Reservation.tenant_id == tenant_id, Reservation.branch_id == branch_2_id).count() == 0:
+            db.add(
+                Reservation(
+                    id=_seed_id(f"ss-op:{tenant_id}:res:gcb-1"),
+                    tenant_id=tenant_id,
+                    branch_id=branch_2_id,
+                    table_id=b2_tables["T-01"].id,
+                    customer_name="Vikramaditya Rao",
+                    customer_phone="+91 98490 88211",
+                    customer_email="vikram.rao@finhub.in",
+                    party_size=4,
+                    reservation_time=now + timedelta(hours=3),
+                    status="Confirmed",
+                    special_requests="Team dinner near charging outlet",
+                )
+            )
+    db.flush()
+    return b1_tables, b2_tables
+
+
+def _ensure_ss_inventory_and_recipes(
+    db: Session,
+    tenant_id: str,
+    branch_1_id: str,
+    menu_items: list[MenuItem],
+    owner_name: str,
+) -> dict[str, InventoryItem]:
+    """Seeds realistic Indian kitchen inventory (including 2 low-stock triggers) and recipe BOMs."""
+    cat_names = [
+        "Grains & Pulses",
+        "Meat & Poultry",
+        "Dairy & Ghee",
+        "Spices & Masalas",
+        "Fresh Produce & Beverage",
+    ]
+    cats: dict[str, InventoryCategory] = {}
+    for cname in cat_names:
+        cat = db.query(InventoryCategory).filter(
+            InventoryCategory.tenant_id == tenant_id,
+            InventoryCategory.name == cname,
+        ).first()
+        if not cat:
+            cat = InventoryCategory(
+                id=_seed_id(f"ss-op:{tenant_id}:invcat:{cname}"),
+                tenant_id=tenant_id,
+                name=cname,
+            )
+            db.add(cat)
+        cats[cname] = cat
+    db.flush()
+
+    inv_specs = [
+        ("SS-INV-BASM", "Royal Aged Basmati Rice", "Grains & Pulses", "kg", Decimal("95.000"), Decimal("25.000"), Decimal("125.00"), "Dry Store Rack A1"),
+        ("SS-INV-CHKN", "Fresh Curry Cut Chicken", "Meat & Poultry", "kg", Decimal("42.000"), Decimal("15.000"), Decimal("235.00"), "Cold Room Zone A"),
+        ("SS-INV-PANEER", "Fresh Malai Paneer Block", "Dairy & Ghee", "kg", Decimal("18.500"), Decimal("8.000"), Decimal("360.00"), "Dairy Chiller B1"),
+        ("SS-INV-GHEE", "Pure Cow Ghee", "Dairy & Ghee", "l", Decimal("3.500"), Decimal("5.000"), Decimal("640.00"), "Dry Pantry B2"),
+        ("SS-INV-SAFF", "Kashmiri Mongra Saffron", "Spices & Masalas", "kg", Decimal("0.080"), Decimal("0.150"), Decimal("18500.00"), "Spice Vault C1"),
+        ("SS-INV-URAD", "Split Black Urad Dal & Batter", "Grains & Pulses", "kg", Decimal("34.000"), Decimal("10.000"), Decimal("92.00"), "Tiffin Cold Prep"),
+        ("SS-INV-TMT", "Farm Fresh Tomatoes", "Fresh Produce & Beverage", "kg", Decimal("28.000"), Decimal("10.000"), Decimal("44.00"), "Produce Walk-In"),
+        ("SS-INV-ONION", "Red Onions (Birista Cut)", "Fresh Produce & Beverage", "kg", Decimal("36.000"), Decimal("12.000"), Decimal("38.00"), "Produce Walk-In"),
+        ("SS-INV-MASALA", "Hyderabadi Shahi Garam Masala", "Spices & Masalas", "kg", Decimal("6.500"), Decimal("2.000"), Decimal("580.00"), "Spice Rack C2"),
+        ("SS-INV-COFFEE", "Chikmagalur Filter Coffee Powder", "Fresh Produce & Beverage", "kg", Decimal("9.200"), Decimal("3.000"), Decimal("490.00"), "Beverage Counter"),
+        ("SS-INV-ATTA", "Chakki Whole Wheat Atta", "Grains & Pulses", "kg", Decimal("55.000"), Decimal("15.000"), Decimal("52.00"), "Dry Store Rack A2"),
+    ]
+
+    inv_by_sku: dict[str, InventoryItem] = {}
+    for sku, name, cat_name, uom, stock, min_stock, cost, loc in inv_specs:
+        inv = db.query(InventoryItem).filter(
+            InventoryItem.tenant_id == tenant_id,
+            InventoryItem.sku == sku,
+        ).first()
+        if not inv:
+            inv = InventoryItem(
+                id=_seed_id(f"ss-op:{tenant_id}:inv:{sku}"),
+                tenant_id=tenant_id,
+                category_id=cats[cat_name].id,
+                name=name,
+                sku=sku,
+                uom=uom,
+                current_stock=stock,
+                minimum_stock=min_stock,
+                cost_per_unit=cost,
+                storage_location=loc,
+            )
+            db.add(inv)
+            db.flush()
+            db.add(
+                StockMovement(
+                    id=_seed_id(f"ss-op:{tenant_id}:invmov-init:{sku}"),
+                    tenant_id=tenant_id,
+                    branch_id=branch_1_id,
+                    inventory_item_id=inv.id,
+                    movement_type="PURCHASE_RECEIPT",
+                    quantity=stock,
+                    unit_cost=cost,
+                    reference_id="OPENING-SS-2026",
+                    notes=f"Initial stock receipt: {name}",
+                    created_by=owner_name,
+                )
+            )
+        inv_by_sku[sku] = inv
+    db.flush()
+
+    recipe_templates: list[tuple[MenuItem, str, list[tuple[str, Decimal]]]] = [
+        (
+            _ss_find_dish(menu_items, "Hyderabadi Chicken Dum Biryani", "Chicken Biryani", "Biryani"),
+            "Marinate chicken with curd, birista & garam masala; layer with aged basmati, saffron milk & cow ghee on slow dum.",
+            [
+                ("SS-INV-BASM", Decimal("0.180")),
+                ("SS-INV-CHKN", Decimal("0.240")),
+                ("SS-INV-ONION", Decimal("0.080")),
+                ("SS-INV-GHEE", Decimal("0.025")),
+                ("SS-INV-MASALA", Decimal("0.015")),
+                ("SS-INV-SAFF", Decimal("0.001")),
+            ],
+        ),
+        (
+            _ss_find_dish(menu_items, "Chicken 65"),
+            "Crisp-fry boneless chicken cubes marinated in ginger-garlic, red chilli paste & temper with curry leaves.",
+            [
+                ("SS-INV-CHKN", Decimal("0.220")),
+                ("SS-INV-ONION", Decimal("0.040")),
+                ("SS-INV-MASALA", Decimal("0.015")),
+            ],
+        ),
+        (
+            _ss_find_dish(menu_items, "Paneer Butter Masala", "Paneer"),
+            "Simmer fresh tomatoes & cashews into makhani gravy finished with cow ghee and soft malai paneer cubes.",
+            [
+                ("SS-INV-PANEER", Decimal("0.180")),
+                ("SS-INV-TMT", Decimal("0.160")),
+                ("SS-INV-ONION", Decimal("0.070")),
+                ("SS-INV-GHEE", Decimal("0.030")),
+                ("SS-INV-MASALA", Decimal("0.012")),
+            ],
+        ),
+        (
+            _ss_find_dish(menu_items, "Masala Dosa", "Dosa"),
+            "Crisp fermented dosa roast smeared with cow ghee and filled with tempered potato-onion palya.",
+            [
+                ("SS-INV-URAD", Decimal("0.220")),
+                ("SS-INV-ONION", Decimal("0.050")),
+                ("SS-INV-GHEE", Decimal("0.020")),
+            ],
+        ),
+        (
+            _ss_find_dish(menu_items, "Idli Sambar", "Idli", "Vada"),
+            "Steam fluffy fermented rice-urad cakes and serve hot with aromatic drumstick sambar.",
+            [
+                ("SS-INV-URAD", Decimal("0.200")),
+                ("SS-INV-TMT", Decimal("0.060")),
+                ("SS-INV-ONION", Decimal("0.040")),
+            ],
+        ),
+        (
+            _ss_find_dish(menu_items, "Butter Naan", "Roti", "Paratha"),
+            "Hand-stretched tandoor dough baked crisp and brushed generously with melted cow ghee.",
+            [
+                ("SS-INV-ATTA", Decimal("0.140")),
+                ("SS-INV-GHEE", Decimal("0.018")),
+            ],
+        ),
+        (
+            _ss_find_dish(menu_items, "Madras Filter Coffee", "Filter Coffee", "Chai"),
+            "Brew slow-dripped Chikmagalur decoction and froth with rich boiled milk in brass davara.",
+            [
+                ("SS-INV-COFFEE", Decimal("0.022")),
+            ],
+        ),
+        (
+            _ss_find_dish(menu_items, "Andhra Meals", "Meals", "Thali"),
+            "Traditional full banana-leaf thali with steamed rice, dal pappu, vegetable fry, sambar, curd & sweet.",
+            [
+                ("SS-INV-BASM", Decimal("0.200")),
+                ("SS-INV-TMT", Decimal("0.090")),
+                ("SS-INV-ONION", Decimal("0.060")),
+                ("SS-INV-GHEE", Decimal("0.020")),
+                ("SS-INV-MASALA", Decimal("0.010")),
+            ],
+        ),
+    ]
+
+    # Ensure first menu item(s) displayed on Recipes page always have a BOM linked
+    seen_recipe_menu_ids = {mi.id for mi, _, _ in recipe_templates}
+    for first_item in sorted(menu_items, key=lambda x: (x.display_order, x.name.lower()))[:3]:
+        if first_item.id not in seen_recipe_menu_ids:
+            recipe_templates.append(
+                (
+                    first_item,
+                    f"Standard house preparation BOM for {first_item.name}.",
+                    [
+                        ("SS-INV-ONION", Decimal("0.050")),
+                        ("SS-INV-TMT", Decimal("0.060")),
+                        ("SS-INV-GHEE", Decimal("0.015")),
+                        ("SS-INV-MASALA", Decimal("0.010")),
+                    ],
+                )
+            )
+            seen_recipe_menu_ids.add(first_item.id)
+
+    for dish, instructions, ingredients in recipe_templates:
+        if db.query(Recipe).filter(Recipe.menu_item_id == dish.id).first():
+            continue
+        recipe = Recipe(
+            id=_seed_id(f"ss-op:{tenant_id}:recipe:{dish.id}"),
+            tenant_id=tenant_id,
+            menu_item_id=dish.id,
+            yield_portions=1,
+            preparation_loss_percent=Decimal("3.00"),
+            instructions=instructions,
+        )
+        db.add(recipe)
+        db.flush()
+        bom_cost = Decimal("0.00")
+        for sku, qty in ingredients:
+            inv_item = inv_by_sku[sku]
+            db.add(
+                RecipeItem(
+                    id=_seed_id(f"ss-op:{tenant_id}:recitem:{dish.id}:{sku}"),
+                    recipe_id=recipe.id,
+                    inventory_item_id=inv_item.id,
+                    quantity=qty,
+                    uom=inv_item.uom,
+                )
+            )
+            bom_cost += qty * Decimal(str(inv_item.cost_per_unit))
+        if bom_cost > Decimal("0.00"):
+            dish.cost_price = round(bom_cost, 2)
+
+    db.flush()
+    return inv_by_sku
+
+
+def _ensure_ss_procurement(
+    db: Session,
+    tenant_id: str,
+    branch_1_id: str,
+    inv_by_sku: dict[str, InventoryItem],
+    receiver_name: str,
+) -> None:
+    """Seeds Indian suppliers, Purchase Orders (Received & Approved), and Goods Receipt Note."""
+    now = datetime.utcnow()
+    sup_specs = [
+        (
+            "Deccan Spice & Grain Co.",
+            "Venkatesh Naidu",
+            "orders@deccanspice.in",
+            "+91 40 2781 4400",
+            "Begum Bazar Spice Market, Hyderabad",
+            "36AAACD4421H1Z4",
+            "Net 15 Days",
+        ),
+        (
+            "Telangana Fresh Farm Dairy",
+            "Lakshmi Narayana",
+            "supply@telanganadairy.in",
+            "+91 40 2401 8820",
+            "Shamirpet Dairy Cluster, Medchal",
+            "36BBBCT9912K1Z8",
+            "Net 7 Days",
+        ),
+        (
+            "Coastal Poultry & Meat House",
+            "Syed Kareem",
+            "dispatch@coastalpoultry.in",
+            "+91 98481 55090",
+            "Gachibowli Cold Chain Hub, Hyderabad",
+            "36CCCCP3189L1Z2",
+            "Cash on Delivery",
+        ),
+    ]
+    suppliers: dict[str, Supplier] = {}
+    for name, contact, email, phone, addr, gst, terms in sup_specs:
+        sup = db.query(Supplier).filter(Supplier.tenant_id == tenant_id, Supplier.name == name).first()
+        if not sup:
+            sup = Supplier(
+                id=_seed_id(f"ss-op:{tenant_id}:sup:{name}"),
+                tenant_id=tenant_id,
+                name=name,
+                contact_name=contact,
+                email=email,
+                phone=phone,
+                address=addr,
+                tax_number=gst,
+                payment_terms=terms,
+            )
+            db.add(sup)
+        suppliers[name] = sup
+    db.flush()
+
+    if db.query(PurchaseOrder).filter(PurchaseOrder.tenant_id == tenant_id, PurchaseOrder.branch_id == branch_1_id).count() > 0:
+        return
+
+    po1 = PurchaseOrder(
+        id=_seed_id(f"ss-op:{tenant_id}:po:1"),
+        tenant_id=tenant_id,
+        branch_id=branch_1_id,
+        supplier_id=suppliers["Deccan Spice & Grain Co."].id,
+        po_number="PO-SS-2026-001",
+        status="Received",
+        total_amount=Decimal("11230.00"),
+        expected_delivery_date=now - timedelta(days=3),
+        notes="Monthly dry grains & aromatic whole spices replenishment",
+        created_at=now - timedelta(days=4),
+    )
+    po2 = PurchaseOrder(
+        id=_seed_id(f"ss-op:{tenant_id}:po:2"),
+        tenant_id=tenant_id,
+        branch_id=branch_1_id,
+        supplier_id=suppliers["Telangana Fresh Farm Dairy"].id,
+        po_number="PO-SS-2026-002",
+        status="Approved",
+        total_amount=Decimal("16800.00"),
+        expected_delivery_date=now + timedelta(days=1),
+        notes="Urgent replenishment for Cow Ghee (low stock) and Malai Paneer",
+        created_at=now - timedelta(hours=5),
+    )
+    db.add_all([po1, po2])
+    db.flush()
+
+    po_items = [
+        (po1.id, inv_by_sku["SS-INV-BASM"], Decimal("50.000"), Decimal("125.00")),
+        (po1.id, inv_by_sku["SS-INV-MASALA"], Decimal("5.000"), Decimal("580.00")),
+        (po1.id, inv_by_sku["SS-INV-ATTA"], Decimal("40.000"), Decimal("52.00")),
+        (po2.id, inv_by_sku["SS-INV-GHEE"], Decimal("15.000"), Decimal("640.00")),
+        (po2.id, inv_by_sku["SS-INV-PANEER"], Decimal("20.000"), Decimal("360.00")),
+    ]
+    for idx, (po_id, inv_item, qty, unit_price) in enumerate(po_items, start=1):
+        db.add(
+            PurchaseOrderItem(
+                id=_seed_id(f"ss-op:{tenant_id}:poitem:{idx}"),
+                po_id=po_id,
+                inventory_item_id=inv_item.id,
+                item_name=inv_item.name,
+                quantity=qty,
+                unit_price=unit_price,
+                total_price=round(qty * unit_price, 2),
+            )
+        )
+
+    db.add(
+        GoodsReceipt(
+            id=_seed_id(f"ss-op:{tenant_id}:grn:1"),
+            tenant_id=tenant_id,
+            branch_id=branch_1_id,
+            po_id=po1.id,
+            grn_number="GRN-SS-2026-001",
+            received_date=now - timedelta(days=3),
+            received_by=receiver_name,
+            notes="Verified seal & quality grade; stored in Dry Store Rack A1",
+        )
+    )
+    db.flush()
+
+
+def _ensure_ss_crm(db: Session, tenant_id: str) -> dict[str, tuple[Customer, LoyaltyAccount]]:
+    """Seeds Hyderabad CRM customers, delivery addresses, and loyalty accounts."""
+    now = datetime.utcnow()
+    specs = [
+        (
+            "Rohan Kulkarni",
+            "+91 98480 12345",
+            "rohan.kulkarni@gmail.com",
+            "VIP",
+            Decimal("6420.00"),
+            6,
+            "Loves extra mirchi ka salan with Hyderabadi Dum Biryani.",
+            ("Home", "Flat 402, My Home Bhooja, Hitec City", "Near Ikea", "Hyderabad", "500081"),
+            "Platinum",
+            642,
+        ),
+        (
+            "Meenakshi Iyer",
+            "+91 98491 54321",
+            "meenakshi.iyer@yahoo.in",
+            "VIP",
+            Decimal("5280.00"),
+            5,
+            "Regular morning tiffins & filter coffee patron.",
+            ("Office", "Tower B, DLF Cyber City, Gachibowli", "Opp IIIT Gate", "Hyderabad", "500032"),
+            "Gold",
+            528,
+        ),
+        (
+            "Siddharth Reddy",
+            "+91 90001 77889",
+            "siddharth.reddy@gmail.com",
+            "Returning",
+            Decimal("2890.00"),
+            3,
+            "Prefers coastal Andhra spicy specials.",
+            ("Home", "Villa 18, Jubilee Hills Road No 45", "Near Peddamma Temple", "Hyderabad", "500033"),
+            "Gold",
+            289,
+        ),
+        (
+            "Farhan Ali",
+            "+91 99890 66554",
+            "farhan.ali@deccan.io",
+            "Returning",
+            Decimal("1950.00"),
+            2,
+            "Weekend family dine-in guest.",
+            ("Home", "H.No 8-2-293, Banjara Hills Road 12", "Near KBR Park", "Hyderabad", "500034"),
+            "Silver",
+            195,
+        ),
+        (
+            "Neha Joshi",
+            "+91 97012 34567",
+            "neha.joshi@gmail.com",
+            "New",
+            Decimal("780.00"),
+            1,
+            "Ordered Paneer Butter Masala combo online.",
+            ("Home", "Plot 21, Madhapur Kavuri Hills", "Near Metro Pillar", "Hyderabad", "500081"),
+            "Silver",
+            78,
+        ),
+    ]
+
+    result: dict[str, tuple[Customer, LoyaltyAccount]] = {}
+    for idx, (name, phone, email, segment, spend, visits, notes, addr_tuple, tier, pts) in enumerate(specs, start=1):
+        cust = db.query(Customer).filter(Customer.tenant_id == tenant_id, Customer.phone == phone).first()
+        if not cust:
+            cust = Customer(
+                id=_seed_id(f"ss-op:{tenant_id}:cust:{phone}"),
+                tenant_id=tenant_id,
+                name=name,
+                phone=phone,
+                email=email,
+                segment=segment,
+                total_spend=spend,
+                total_visits=visits,
+                notes=notes,
+                first_visit_at=now - timedelta(days=30 - idx * 3),
+                last_visit_at=now - timedelta(days=max(0, 6 - idx)),
+            )
+            db.add(cust)
+            db.flush()
+            label, address, landmark, city, postal = addr_tuple
+            db.add(
+                CustomerAddress(
+                    id=_seed_id(f"ss-op:{tenant_id}:addr:{phone}"),
+                    customer_id=cust.id,
+                    label=label,
+                    address=address,
+                    landmark=landmark,
+                    city=city,
+                    postal_code=postal,
+                )
+            )
+        acct = db.query(LoyaltyAccount).filter(LoyaltyAccount.customer_id == cust.id).first()
+        if not acct:
+            acct = LoyaltyAccount(
+                id=_seed_id(f"ss-op:{tenant_id}:loyalty:{phone}"),
+                tenant_id=tenant_id,
+                customer_id=cust.id,
+                tier=tier,
+                points_balance=pts,
+            )
+            db.add(acct)
+            db.flush()
+        result[name] = (cust, acct)
+
+    db.flush()
+    return result
+
+
+def _create_ss_order_bundle(
+    db: Session,
+    tenant_id: str,
+    branch_id: str,
+    order_key: str,
+    order_number: str,
+    order_type: str,
+    status_val: str,
+    created_at: datetime,
+    cashier: User,
+    waiter: Optional[User],
+    customer: Optional[Customer],
+    loyalty_acct: Optional[LoyaltyAccount],
+    table: Optional[RestaurantTable],
+    items_with_qty: list[tuple[MenuItem, int, Optional[str]]],
+    stations: list[KitchenStation],
+    payment_method: Optional[str] = None,
+    payment_ref: Optional[str] = None,
+    invoice_number: Optional[str] = None,
+    cash_session_id: Optional[str] = None,
+    kot_status: str = "New",
+    kot_number_prefix: str = "KOT-SS",
+    notes: Optional[str] = None,
+) -> Order:
+    """Creates a realistic Order + OrderItems and optionally Invoice/Payment/Loyalty or Active KOTs."""
+    subtotal = Decimal("0.00")
+    tax_amount = Decimal("0.00")
+    prepared_items: list[tuple[MenuItem, int, Optional[str], Decimal, Decimal]] = []
+
+    for dish, qty, item_notes in items_with_qty:
+        unit_price = Decimal(str(dish.base_price))
+        line_sub = unit_price * qty
+        rate = Decimal(str(dish.tax_rate or Decimal("5.00")))
+        line_tax = round((line_sub * rate) / Decimal("100.00"), 2)
+        subtotal += line_sub
+        tax_amount += line_tax
+        prepared_items.append((dish, qty, item_notes, unit_price, line_sub))
+
+    total_amount = subtotal + tax_amount
+    order = Order(
+        id=_seed_id(f"ss-op:{tenant_id}:order:{order_key}"),
+        tenant_id=tenant_id,
+        branch_id=branch_id,
+        order_number=order_number,
+        order_type=order_type,
+        status=status_val,
+        table_id=table.id if table else None,
+        table_number=table.table_number if table else None,
+        customer_id=customer.id if customer else None,
+        customer_name=customer.name if customer else "Walk-in Guest",
+        customer_phone=customer.phone if customer else None,
+        subtotal=subtotal,
+        discount_amount=Decimal("0.00"),
+        tax_amount=tax_amount,
+        service_charge=Decimal("0.00"),
+        total_amount=total_amount,
+        cashier_id=cashier.id,
+        cashier_name=cashier.full_name,
+        waiter_id=waiter.id if waiter else None,
+        waiter_name=waiter.full_name if waiter else None,
+        notes=notes,
+        created_at=created_at,
+    )
+    db.add(order)
+    db.flush()
+
+    created_ois: list[tuple[MenuItem, OrderItem]] = []
+    for idx, (dish, qty, item_notes, unit_price, line_sub) in enumerate(prepared_items, start=1):
+        oi = OrderItem(
+            id=_seed_id(f"ss-op:{tenant_id}:oi:{order_key}:{idx}"),
+            order_id=order.id,
+            menu_item_id=dish.id,
+            item_name=dish.name,
+            unit_price=unit_price,
+            cost_price=Decimal(str(dish.cost_price or (unit_price * Decimal("0.38")))),
+            quantity=qty,
+            subtotal=line_sub,
+            tax_rate=Decimal(str(dish.tax_rate or Decimal("5.00"))),
+            modifiers=[],
+            notes=item_notes,
+        )
+        db.add(oi)
+        created_ois.append((dish, oi))
+    db.flush()
+
+    if status_val == "Completed" and invoice_number and payment_method:
+        inv = Invoice(
+            id=_seed_id(f"ss-op:{tenant_id}:inv:{order_key}"),
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            order_id=order.id,
+            invoice_number=invoice_number,
+            subtotal=subtotal,
+            discount=Decimal("0.00"),
+            tax=tax_amount,
+            service_charge=Decimal("0.00"),
+            total_amount=total_amount,
+            paid_amount=total_amount,
+            status="Paid",
+            created_at=created_at,
+        )
+        db.add(inv)
+        db.flush()
+        db.add(
+            Payment(
+                id=_seed_id(f"ss-op:{tenant_id}:pay:{order_key}"),
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                invoice_id=inv.id,
+                order_id=order.id,
+                amount=total_amount,
+                payment_method=payment_method,
+                payment_reference=payment_ref,
+                status="Success",
+                cash_register_session_id=cash_session_id if payment_method == "Cash" else None,
+                created_at=created_at,
+            )
+        )
+        if loyalty_acct:
+            earned = max(1, int(total_amount // Decimal("10.00")))
+            db.add(
+                LoyaltyTransaction(
+                    id=_seed_id(f"ss-op:{tenant_id}:ltx:{order_key}"),
+                    tenant_id=tenant_id,
+                    account_id=loyalty_acct.id,
+                    transaction_type="EARN",
+                    points=earned,
+                    running_balance=loyalty_acct.points_balance,
+                    order_id=order.id,
+                    reason=f"Earned on Order {order_number}",
+                    created_at=created_at,
+                )
+            )
+    elif status_val == "InKitchen" and stations:
+        station_groups: dict[str, list[OrderItem]] = {}
+        fallback_station_id = stations[0].id
+        valid_station_ids = {s.id for s in stations}
+        for dish, oi in created_ois:
+            st_id = dish.kitchen_station_id if dish.kitchen_station_id in valid_station_ids else fallback_station_id
+            station_groups.setdefault(st_id, []).append(oi)
+
+        for s_idx, (st_id, ois) in enumerate(station_groups.items(), start=1):
+            kot = KOT(
+                id=_seed_id(f"ss-op:{tenant_id}:kot:{order_key}:{s_idx}"),
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                order_id=order.id,
+                kitchen_station_id=st_id,
+                kot_number=f"{kot_number_prefix}-{s_idx}",
+                status=kot_status,
+                waiter_name=waiter.full_name if waiter else cashier.full_name,
+                notes=notes,
+                created_at=created_at,
+                started_preparing_at=(created_at + timedelta(minutes=2)) if kot_status in ("Preparing", "Ready") else None,
+                ready_at=(created_at + timedelta(minutes=9)) if kot_status == "Ready" else None,
+            )
+            db.add(kot)
+            db.flush()
+            for k_idx, oi in enumerate(ois, start=1):
+                db.add(
+                    KOTItem(
+                        id=_seed_id(f"ss-op:{tenant_id}:kotitem:{order_key}:{s_idx}:{k_idx}"),
+                        kot_id=kot.id,
+                        order_item_id=oi.id,
+                        item_name=oi.item_name,
+                        variant_name=oi.variant_name,
+                        modifiers_summary=None,
+                        quantity=oi.quantity,
+                        notes=oi.notes,
+                        status=kot_status,
+                    )
+                )
+        if table:
+            table.status = "Occupied"
+            table.active_order_id = order.id
+            if not table.occupied_since:
+                table.occupied_since = created_at
+
+    return order
+
+
+def _ensure_branch_stations(db: Session, tenant_id: str, branch_id: str) -> list[KitchenStation]:
+    """Ensures every branch has a Kitchen and KOT routing stations for KDS and POS."""
+    _ensure_spice_symphony_kitchen_stations(db, tenant_id, branch_id)
+    stations = db.query(KitchenStation).filter(
+        KitchenStation.tenant_id == tenant_id,
+        KitchenStation.branch_id == branch_id,
+    ).all()
+    if stations:
+        return stations
+
+    kitchen = db.query(Kitchen).filter(
+        Kitchen.tenant_id == tenant_id,
+        Kitchen.branch_id == branch_id,
+    ).first()
+    if not kitchen:
+        kitchen = Kitchen(
+            id=_seed_id(f"ss-op:{tenant_id}:kitchen:{branch_id}"),
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            name="Main Kitchen",
+        )
+        db.add(kitchen)
+        db.flush()
+
+    station_defs = [
+        ("Curry & Biryani Station", "192.168.1.51"),
+        ("Tandoor & Grill", "192.168.1.52"),
+        ("Tiffin & Beverage Counter", "192.168.1.53"),
+    ]
+    created: list[KitchenStation] = []
+    for st_name, printer_ip in station_defs:
+        st = KitchenStation(
+            id=_seed_id(f"ss-op:{tenant_id}:station:{branch_id}:{st_name}"),
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            kitchen_id=kitchen.id,
+            name=st_name,
+            printer_ip=printer_ip,
+        )
+        db.add(st)
+        created.append(st)
+    db.flush()
+    return created
+
+
+def seed_spice_symphony_full_operations(
+    db: Session,
+    tenant_id: str,
+    branch_1_id: str,
+    branch_2_id: Optional[str],
+    owner_user: Optional[User],
+) -> None:
+    """
+    Idempotently seeds complete end-to-end Indian restaurant operational data for Spice Symphony
+    across staff, tables, reservations, inventory/low-stock alerts, recipes, suppliers/POs/GRNs,
+    CRM/loyalty, open cash registers, expenses, 7-day sales orders, active KOTs, and delivery dispatch.
+    """
+    if not owner_user:
+        owner_user = (
+            db.query(User).filter(User.tenant_id == tenant_id, User.role == "TENANT_OWNER").first()
+            or db.query(User).filter(User.tenant_id == tenant_id).first()
+        )
+    owner_name = owner_user.full_name if owner_user else "Rajesh Verma"
+
+    stations_b1 = _ensure_branch_stations(db, tenant_id, branch_1_id)
+    stations_b2 = _ensure_branch_stations(db, tenant_id, branch_2_id) if branch_2_id else []
+
+    menu_items = db.query(MenuItem).filter(MenuItem.tenant_id == tenant_id).order_by(MenuItem.display_order.asc(), MenuItem.name.asc()).all()
+    if not menu_items:
+        return
+
+    default_menu = db.query(Menu).filter(Menu.tenant_id == tenant_id).order_by(Menu.display_order.asc()).first()
+    cashier_b1, waiter_b1, cashier_b2 = _ensure_ss_staff(db, tenant_id, branch_1_id, branch_2_id, owner_user)
+    b1_tables, b2_tables = _ensure_ss_tables_and_reservations(
+        db,
+        tenant_id,
+        branch_1_id,
+        branch_2_id,
+        default_menu.id if default_menu else None,
+    )
+    inv_by_sku = _ensure_ss_inventory_and_recipes(db, tenant_id, branch_1_id, menu_items, owner_name)
+    _ensure_ss_procurement(db, tenant_id, branch_1_id, inv_by_sku, "Anitha Reddy")
+    crm_map = _ensure_ss_crm(db, tenant_id)
+
+    now = datetime.utcnow()
+
+    # Open Cash Register & Shift Session for Branch 1 (hyderabad)
+    reg_b1 = db.query(CashRegister).filter(
+        CashRegister.tenant_id == tenant_id,
+        CashRegister.branch_id == branch_1_id,
+    ).first()
+    if not reg_b1:
+        reg_b1 = CashRegister(
+            id=_seed_id(f"ss-op:{tenant_id}:reg:{branch_1_id}"),
+            tenant_id=tenant_id,
+            branch_id=branch_1_id,
+            name="Counter POS 01",
+            status="Open",
+        )
+        db.add(reg_b1)
+        db.flush()
+
+    sess_b1 = db.query(CashRegisterSession).filter(
+        CashRegisterSession.tenant_id == tenant_id,
+        CashRegisterSession.branch_id == branch_1_id,
+        CashRegisterSession.status == "Open",
+    ).first()
+    if not sess_b1:
+        sess_b1 = CashRegisterSession(
+            id=_seed_id(f"ss-op:{tenant_id}:sess:{branch_1_id}"),
+            tenant_id=tenant_id,
+            branch_id=branch_1_id,
+            register_id=reg_b1.id,
+            cashier_id=cashier_b1.id,
+            cashier_name=cashier_b1.full_name,
+            opened_at=now - timedelta(hours=5),
+            opening_float=Decimal("3000.00"),
+            cash_sales=Decimal("0.00"),
+            cash_in=Decimal("2000.00"),
+            cash_out=Decimal("450.00"),
+            cash_refunds=Decimal("0.00"),
+            expected_closing_cash=Decimal("4550.00"),
+            status="Open",
+            notes="Morning shift — Banjara Hills Flagship",
+        )
+        db.add(sess_b1)
+        db.flush()
+        db.add_all([
+            CashTransaction(
+                id=_seed_id(f"ss-op:{tenant_id}:cashtx:in"),
+                session_id=sess_b1.id,
+                transaction_type="CASH_IN",
+                amount=Decimal("2000.00"),
+                reason="Added ₹100 & ₹50 change float from branch safe",
+                authorized_by="Anitha Reddy",
+            ),
+            CashTransaction(
+                id=_seed_id(f"ss-op:{tenant_id}:cashtx:out"),
+                session_id=sess_b1.id,
+                transaction_type="CASH_OUT",
+                amount=Decimal("450.00"),
+                reason="Petty cash: fresh curry leaves, mint & lemons",
+                authorized_by="Anitha Reddy",
+            ),
+        ])
+        db.flush()
+
+    # Expenses for P&L reporting on Branch 1
+    if db.query(Expense).filter(Expense.tenant_id == tenant_id, Expense.branch_id == branch_1_id).count() == 0:
+        db.add_all([
+            Expense(
+                id=_seed_id(f"ss-op:{tenant_id}:exp:1"),
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                category="Utilities",
+                amount=Decimal("4250.00"),
+                payment_method="Bank Transfer",
+                payee="TSPDCL & Commercial LPG",
+                expense_date=now - timedelta(days=4),
+                notes="Kitchen commercial gas cylinders & power bill",
+            ),
+            Expense(
+                id=_seed_id(f"ss-op:{tenant_id}:exp:2"),
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                category="Supplies & Packaging",
+                amount=Decimal("2150.00"),
+                payment_method="UPI",
+                payee="EcoPack Containers Hyderabad",
+                expense_date=now - timedelta(days=2),
+                notes="Leak-proof biryani handi tubs & banana leaf liners",
+            ),
+            Expense(
+                id=_seed_id(f"ss-op:{tenant_id}:exp:3"),
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                category="Staff Welfare",
+                amount=Decimal("1600.00"),
+                payment_method="Cash",
+                payee="Kitchen Staff Mess",
+                expense_date=now - timedelta(days=1),
+                notes="Weekly staff meals & aprons",
+            ),
+        ])
+
+    # Signature Indian dishes for orders
+    biryani = _ss_find_dish(menu_items, "Hyderabadi Chicken Dum Biryani", "Chicken Biryani", "Biryani")
+    chicken65 = _ss_find_dish(menu_items, "Chicken 65")
+    paneer_bm = _ss_find_dish(menu_items, "Paneer Butter Masala", "Paneer")
+    masala_dosa = _ss_find_dish(menu_items, "Masala Dosa", "Dosa")
+    idli = _ss_find_dish(menu_items, "Idli Sambar", "Idli")
+    naan = _ss_find_dish(menu_items, "Butter Naan", "Roti")
+    andhra_meals = _ss_find_dish(menu_items, "Andhra Meals", "Meals", "Thali")
+    egg_curry = _ss_find_dish(menu_items, "Andhra Egg Curry", "Egg Curry")
+    samosa = _ss_find_dish(menu_items, "Aloo Samosa", "Samosa")
+    coffee = _ss_find_dish(menu_items, "Madras Filter Coffee", "Coffee")
+    gulab = _ss_find_dish(menu_items, "Double Ka Meetha", "Gulab Jamun")
+
+    rohan_c, rohan_l = crm_map["Rohan Kulkarni"]
+    meenakshi_c, meenakshi_l = crm_map["Meenakshi Iyer"]
+    sid_c, sid_l = crm_map["Siddharth Reddy"]
+    farhan_c, farhan_l = crm_map["Farhan Ali"]
+    neha_c, neha_l = crm_map["Neha Joshi"]
+
+    # Seed 8 Completed orders across 7 days + 2 Live InKitchen orders on Branch 1
+    if db.query(Order).filter(Order.tenant_id == tenant_id, Order.branch_id == branch_1_id).count() == 0:
+        completed_specs = [
+            ("hyd-1", "ORD-SS-1001", "INV-SS-1001", "DineIn", now - timedelta(days=6, hours=3), rohan_c, rohan_l, b1_tables["T-01"], "UPI", "UPI-4091283", [(biryani, 3, None), (chicken65, 2, "Extra crispy"), (coffee, 2, None)]),
+            ("hyd-2", "ORD-SS-1002", "INV-SS-1002", "Takeaway", now - timedelta(days=5, hours=2), meenakshi_c, meenakshi_l, None, "Card", "CARD-991042", [(masala_dosa, 4, "Crispy roast"), (idli, 4, None), (coffee, 4, None)]),
+            ("hyd-3", "ORD-SS-1003", "INV-SS-1003", "DineIn", now - timedelta(days=4, hours=4), sid_c, sid_l, b1_tables["T-06"], "UPI", "UPI-5523190", [(andhra_meals, 4, None), (egg_curry, 2, "Spicy"), (gulab, 3, None)]),
+            ("hyd-4", "ORD-SS-1004", "INV-SS-1004", "QR", now - timedelta(days=3, hours=1), farhan_c, farhan_l, b1_tables["T-01"], "UPI", "UPI-6731104", [(paneer_bm, 2, None), (naan, 6, None), (samosa, 3, None)]),
+            ("hyd-5", "ORD-SS-1005", "INV-SS-1005", "Delivery", now - timedelta(days=2, hours=2), rohan_c, rohan_l, None, "UPI", "UPI-7190023", [(biryani, 4, "Send raita & salan"), (chicken65, 2, None)]),
+            ("hyd-6", "ORD-SS-1006", "INV-SS-1006", "DineIn", now - timedelta(days=1, hours=3), meenakshi_c, meenakshi_l, b1_tables["T-06"], "Cash", None, [(paneer_bm, 2, None), (naan, 4, None), (masala_dosa, 2, None), (coffee, 2, None)]),
+            ("hyd-7", "ORD-SS-1007", "INV-SS-1007", "Delivery", now - timedelta(hours=3), neha_c, neha_l, None, "Card", "CARD-118904", [(biryani, 2, "Leave at lobby"), (paneer_bm, 1, None), (naan, 3, None)]),
+            ("hyd-8", "ORD-SS-1008", "INV-SS-1008", "DineIn", now - timedelta(hours=1, minutes=20), sid_c, sid_l, b1_tables["T-01"], "Cash", None, [(andhra_meals, 2, None), (chicken65, 2, None), (gulab, 2, None)]),
+        ]
+
+        created_orders: dict[str, Order] = {}
+        today_cash_sales = Decimal("0.00")
+        for key, ord_no, inv_no, otype, ts, cust, loy, tbl, pay_m, pay_ref, line_items in completed_specs:
+            ord_obj = _create_ss_order_bundle(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_1_id,
+                order_key=key,
+                order_number=ord_no,
+                order_type=otype,
+                status_val="Completed",
+                created_at=ts,
+                cashier=cashier_b1,
+                waiter=waiter_b1 if otype in ("DineIn", "QR") else None,
+                customer=cust,
+                loyalty_acct=loy,
+                table=tbl,
+                items_with_qty=line_items,
+                stations=stations_b1,
+                payment_method=pay_m,
+                payment_ref=pay_ref,
+                invoice_number=inv_no,
+                cash_session_id=sess_b1.id,
+            )
+            created_orders[key] = ord_obj
+            if pay_m == "Cash" and ts.date() == now.date():
+                today_cash_sales += Decimal(str(ord_obj.total_amount))
+
+        sess_b1.cash_sales = today_cash_sales
+        sess_b1.expected_closing_cash = (
+            sess_b1.opening_float
+            + sess_b1.cash_sales
+            + sess_b1.cash_in
+            - sess_b1.cash_out
+            - sess_b1.cash_refunds
+        )
+
+        # Delivery order 9 (Live InKitchen order with OutForDelivery rider)
+        live_deliv_order = _create_ss_order_bundle(
+            db=db,
+            tenant_id=tenant_id,
+            branch_id=branch_1_id,
+            order_key="hyd-9",
+            order_number="ORD-SS-1009",
+            order_type="Delivery",
+            status_val="InKitchen",
+            created_at=now - timedelta(minutes=22),
+            cashier=cashier_b1,
+            waiter=None,
+            customer=rohan_c,
+            loyalty_acct=rohan_l,
+            table=None,
+            items_with_qty=[(biryani, 2, "Extra double masala"), (chicken65, 1, None)],
+            stations=stations_b1,
+            kot_status="Ready",
+            kot_number_prefix="KOT-SS-101",
+            notes="Online prepaid delivery — pack hot thermal bag",
+        )
+        created_orders["hyd-9"] = live_deliv_order
+
+        # Live Dine-In Order 10 on Table T-02
+        _create_ss_order_bundle(
+            db=db,
+            tenant_id=tenant_id,
+            branch_id=branch_1_id,
+            order_key="hyd-10",
+            order_number="ORD-SS-1010",
+            order_type="DineIn",
+            status_val="InKitchen",
+            created_at=now - timedelta(minutes=14),
+            cashier=cashier_b1,
+            waiter=waiter_b1,
+            customer=meenakshi_c,
+            loyalty_acct=meenakshi_l,
+            table=b1_tables["T-02"],
+            items_with_qty=[(paneer_bm, 2, "Medium spice"), (naan, 4, None), (biryani, 1, None)],
+            stations=stations_b1,
+            kot_status="Preparing",
+            kot_number_prefix="KOT-SS-102",
+            notes="Table T-02 family dinner — serve starters first",
+        )
+
+        # Live Dine-In Order 11 on Table T-03
+        _create_ss_order_bundle(
+            db=db,
+            tenant_id=tenant_id,
+            branch_id=branch_1_id,
+            order_key="hyd-11",
+            order_number="ORD-SS-1011",
+            order_type="DineIn",
+            status_val="InKitchen",
+            created_at=now - timedelta(minutes=5),
+            cashier=cashier_b1,
+            waiter=waiter_b1,
+            customer=farhan_c,
+            loyalty_acct=farhan_l,
+            table=b1_tables["T-03"],
+            items_with_qty=[(masala_dosa, 2, "Ghee roast"), (samosa, 2, None), (coffee, 2, "Strong")],
+            stations=stations_b1,
+            kot_status="New",
+            kot_number_prefix="KOT-SS-103",
+            notes="Table T-03 evening tiffins",
+        )
+
+        # Delivery Executives & Delivery Dispatch Orders for Branch 1
+        if db.query(DeliveryExecutive).filter(DeliveryExecutive.tenant_id == tenant_id, DeliveryExecutive.branch_id == branch_1_id).count() == 0:
+            r1 = DeliveryExecutive(id=_seed_id(f"ss-op:{tenant_id}:rider:1"), tenant_id=tenant_id, branch_id=branch_1_id, name="Mahesh Babu K", phone="+91 98485 11101", vehicle_number="TS-09-EV-4421", is_available=False)
+            r2 = DeliveryExecutive(id=_seed_id(f"ss-op:{tenant_id}:rider:2"), tenant_id=tenant_id, branch_id=branch_1_id, name="Imran Sheikh", phone="+91 98485 11102", vehicle_number="TS-09-EV-8812", is_available=True)
+            r3 = DeliveryExecutive(id=_seed_id(f"ss-op:{tenant_id}:rider:3"), tenant_id=tenant_id, branch_id=branch_1_id, name="Venkat Rao", phone="+91 98485 11103", vehicle_number="TS-09-UC-3094", is_available=True)
+            db.add_all([r1, r2, r3])
+            db.flush()
+
+            db.add_all([
+                DeliveryOrder(
+                    id=_seed_id(f"ss-op:{tenant_id}:deliv:1"),
+                    tenant_id=tenant_id,
+                    branch_id=branch_1_id,
+                    order_id=created_orders["hyd-9"].id,
+                    customer_name=rohan_c.name,
+                    customer_phone=rohan_c.phone,
+                    delivery_address="Flat 402, My Home Bhooja, Hitec City, Hyderabad",
+                    delivery_fee=Decimal("45.00"),
+                    status="OutForDelivery",
+                    rider_id=r1.id,
+                    rider_name=r1.name,
+                    dispatched_at=now - timedelta(minutes=8),
+                    created_at=now - timedelta(minutes=22),
+                ),
+                DeliveryOrder(
+                    id=_seed_id(f"ss-op:{tenant_id}:deliv:2"),
+                    tenant_id=tenant_id,
+                    branch_id=branch_1_id,
+                    order_id=created_orders["hyd-7"].id,
+                    customer_name=neha_c.name,
+                    customer_phone=neha_c.phone,
+                    delivery_address="Plot 21, Madhapur Kavuri Hills, Hyderabad",
+                    delivery_fee=Decimal("35.00"),
+                    status="Assigned",
+                    rider_id=r2.id,
+                    rider_name=r2.name,
+                    created_at=now - timedelta(hours=3),
+                ),
+                DeliveryOrder(
+                    id=_seed_id(f"ss-op:{tenant_id}:deliv:3"),
+                    tenant_id=tenant_id,
+                    branch_id=branch_1_id,
+                    order_id=created_orders["hyd-5"].id,
+                    customer_name=rohan_c.name,
+                    customer_phone=rohan_c.phone,
+                    delivery_address="Flat 402, My Home Bhooja, Hitec City, Hyderabad",
+                    delivery_fee=Decimal("45.00"),
+                    status="Delivered",
+                    rider_id=r3.id,
+                    rider_name=r3.name,
+                    dispatched_at=now - timedelta(days=2, hours=1, minutes=40),
+                    delivered_at=now - timedelta(days=2, hours=1, minutes=12),
+                    created_at=now - timedelta(days=2, hours=2),
+                ),
+            ])
+
+    # Branch 2 (Hyderabad - Gachibowli) Register + Sample Orders
+    if branch_2_id:
+        reg_b2 = db.query(CashRegister).filter(
+            CashRegister.tenant_id == tenant_id,
+            CashRegister.branch_id == branch_2_id,
+        ).first()
+        if not reg_b2:
+            reg_b2 = CashRegister(
+                id=_seed_id(f"ss-op:{tenant_id}:reg:{branch_2_id}"),
+                tenant_id=tenant_id,
+                branch_id=branch_2_id,
+                name="Gachibowli POS 01",
+                status="Open",
+            )
+            db.add(reg_b2)
+            db.flush()
+
+        sess_b2 = db.query(CashRegisterSession).filter(
+            CashRegisterSession.tenant_id == tenant_id,
+            CashRegisterSession.branch_id == branch_2_id,
+            CashRegisterSession.status == "Open",
+        ).first()
+        if not sess_b2:
+            sess_b2 = CashRegisterSession(
+                id=_seed_id(f"ss-op:{tenant_id}:sess:{branch_2_id}"),
+                tenant_id=tenant_id,
+                branch_id=branch_2_id,
+                register_id=reg_b2.id,
+                cashier_id=cashier_b2.id,
+                cashier_name=cashier_b2.full_name,
+                opened_at=now - timedelta(hours=4),
+                opening_float=Decimal("2500.00"),
+                cash_sales=Decimal("0.00"),
+                cash_in=Decimal("0.00"),
+                cash_out=Decimal("0.00"),
+                cash_refunds=Decimal("0.00"),
+                expected_closing_cash=Decimal("2500.00"),
+                status="Open",
+                notes="Gachibowli Financial District POS Shift",
+            )
+            db.add(sess_b2)
+            db.flush()
+
+        if db.query(Order).filter(Order.tenant_id == tenant_id, Order.branch_id == branch_2_id).count() == 0:
+            _create_ss_order_bundle(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_2_id,
+                order_key="gcb-1",
+                order_number="ORD-SS-GCB-001",
+                order_type="DineIn",
+                status_val="Completed",
+                created_at=now - timedelta(days=1, hours=2),
+                cashier=cashier_b2,
+                waiter=cashier_b2,
+                customer=meenakshi_c,
+                loyalty_acct=meenakshi_l,
+                table=b2_tables.get("T-01"),
+                items_with_qty=[(biryani, 2, None), (coffee, 2, None)],
+                stations=stations_b2,
+                payment_method="UPI",
+                payment_ref="UPI-GCB-8812",
+                invoice_number="INV-SS-GCB-001",
+                cash_session_id=sess_b2.id,
+            )
+            gcb_cash_ord = _create_ss_order_bundle(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_2_id,
+                order_key="gcb-2",
+                order_number="ORD-SS-GCB-002",
+                order_type="Takeaway",
+                status_val="Completed",
+                created_at=now - timedelta(hours=2),
+                cashier=cashier_b2,
+                waiter=None,
+                customer=sid_c,
+                loyalty_acct=sid_l,
+                table=None,
+                items_with_qty=[(masala_dosa, 2, None), (idli, 2, None)],
+                stations=stations_b2,
+                payment_method="Cash",
+                invoice_number="INV-SS-GCB-002",
+                cash_session_id=sess_b2.id,
+            )
+            sess_b2.cash_sales = Decimal(str(gcb_cash_ord.total_amount))
+            sess_b2.expected_closing_cash = sess_b2.opening_float + sess_b2.cash_sales
+
+            _create_ss_order_bundle(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_2_id,
+                order_key="gcb-3",
+                order_number="ORD-SS-GCB-003",
+                order_type="DineIn",
+                status_val="InKitchen",
+                created_at=now - timedelta(minutes=11),
+                cashier=cashier_b2,
+                waiter=cashier_b2,
+                customer=rohan_c,
+                loyalty_acct=rohan_l,
+                table=b2_tables.get("T-02"),
+                items_with_qty=[(paneer_bm, 2, None), (naan, 4, None)],
+                stations=stations_b2,
+                kot_status="Preparing",
+                kot_number_prefix="KOT-SS-GCB-101",
+                notes="Gachibowli Table T-02 lunch",
+            )
+
+    db.flush()
+
+
 def upgrade_existing_menu_data():
-    """Upgrades seeded tenants to pure Indian cuisines, Indian categories, and Indian dishes only."""
+    """Upgrades seeded tenants to pure Indian menus and ensures Spice Symphony full operational data."""
     Base.metadata.create_all(bind=engine)
     ensure_schema_columns(engine)
     db: Session = SessionLocal()
@@ -1173,39 +2567,38 @@ def upgrade_existing_menu_data():
 
         t2 = db.query(Tenant).filter(Tenant.slug == "spice-symphony").first()
         if t2:
-            b2 = db.query(Branch).filter(Branch.tenant_id == t2.id).order_by(Branch.created_at.asc()).first()
+            plan_pro = db.query(SubscriptionPlan).filter(SubscriptionPlan.code == "pro").first()
+            if plan_pro and t2.subscription and t2.subscription.plan_id != plan_pro.id:
+                t2.subscription.plan_id = plan_pro.id
+
+            branches = db.query(Branch).filter(Branch.tenant_id == t2.id).order_by(Branch.created_at.asc()).all()
+            b2 = branches[0] if len(branches) >= 1 else None
+            b2b = branches[1] if len(branches) >= 2 else None
             if b2:
                 b2.name = "hyderabad"
-                if db.query(Branch).filter(Branch.tenant_id == t2.id).count() == 1:
-                    db.add(
-                        Branch(
-                            id=str(uuid.uuid4()),
-                            tenant_id=t2.id,
-                            name="Hyderabad - Gachibowli",
-                            code="SS-HYD-02",
-                            address="Financial District",
-                            city="Hyderabad",
-                            state="Telangana",
-                            tax_rate=Decimal("5.00"),
-                            currency="INR",
-                            is_active=True,
-                        )
+                if not b2b:
+                    b2b = Branch(
+                        id=_seed_id(f"ss-op:{t2.id}:branch:SS-HYD-02"),
+                        tenant_id=t2.id,
+                        name="Hyderabad - Gachibowli",
+                        code="SS-HYD-02",
+                        address="Financial District",
+                        city="Hyderabad",
+                        state="Telangana",
+                        tax_rate=Decimal("5.00"),
+                        currency="INR",
+                        is_active=True,
                     )
+                    db.add(b2b)
                     db.flush()
-                if db.query(RestaurantTable).filter(RestaurantTable.tenant_id == t2.id).count() == 0:
-                    area = DiningArea(id=str(uuid.uuid4()), tenant_id=t2.id, branch_id=b2.id, name="Main Dining Hall", display_order=1)
-                    db.add(area)
-                    db.flush()
-                    db.add_all([
-                        RestaurantTable(id=str(uuid.uuid4()), tenant_id=t2.id, branch_id=b2.id, area_id=area.id, table_number="T-01", name="Andhra Courtyard 1", capacity=4, status="Available", qr_code_token="QR-SPICE-T01"),
-                        RestaurantTable(id=str(uuid.uuid4()), tenant_id=t2.id, branch_id=b2.id, area_id=area.id, table_number="T-02", name="Nizam Booth 2", capacity=6, status="Available", qr_code_token="QR-SPICE-T02"),
-                    ])
                 _purge_non_indian_and_legacy_records(db, t2.id)
                 seed_spice_symphony_menus(db, t2.id, b2.id)
                 _purge_non_indian_and_legacy_records(db, t2.id)
+                owner = db.query(User).filter(User.tenant_id == t2.id, User.role == "TENANT_OWNER").first()
+                seed_spice_symphony_full_operations(db, t2.id, b2.id, b2b.id, owner)
 
         db.commit()
-        print("✅ All tenants upgraded to pure Indian dishes, categories & cuisines!")
+        print("✅ All tenants upgraded with Indian menus & full Spice Symphony operational data!")
     except Exception:
         db.rollback()
         raise
