@@ -1,0 +1,34 @@
+# Dependencies & Virtual Environments
+node_modules/
+backend/venv/
+venv/
+.venv/
+
+# Next.js & Build Artifacts
+frontend/.next/
+frontend/out/
+.vercel/
+
+# Python Caches & Tests
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Databases & User Uploads
+*.db
+*.sqlite
+*.sqlite3
+backend/uploads/
+
+# Environment Variables & Logs
+.env
+.env.local
+.env.*.local
+*.log
+
+# OS Files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,445 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root color-scheme orchestration backed by <meta name="color-scheme"> */
+:root {
+  color-scheme: light dark;
+
+  /* Raw light & dark color tokens */
+  --canvas-light: #ffffff;
+  --canvas-dark: #020617;
+
+  --panel-light: #ffffff;
+  --panel-dark: #0f172a;
+
+  --panel-glass-light: rgb(255 255 255 / 0.92);
+  --panel-glass-dark: rgb(15 23 42 / 0.9);
+
+  --well-light: #f8fafc;
+  --well-dark: #020617;
+
+  --well-soft-light: rgb(248 250 252 / 0.85);
+  --well-soft-dark: rgb(2 6 23 / 0.5);
+
+  --control-light: #f1f5f9;
+  --control-dark: #1e293b;
+
+  --control-hover-light: #e2e8f0;
+  --control-hover-dark: #334155;
+
+  --row-hover-light: #f8fafc;
+  --row-hover-dark: rgb(30 41 59 / 0.35);
+
+  --line-light: #e2e8f0;
+  --line-dark: #1e293b;
+
+  --line-strong-light: #cbd5e1;
+  --line-strong-dark: #334155;
+
+  --input-border-light: #94a3b8;
+  --input-border-dark: #334155;
+
+  --backdrop-light: rgb(15 23 42 / 0.45);
+  --backdrop-dark: rgb(0 0 0 / 0.8);
+
+  --ink-light: #0f172a;
+  --ink-dark: #ffffff;
+
+  --ink-2-light: #1e293b;
+  --ink-2-dark: #f1f5f9;
+
+  --ink-3-light: #334155;
+  --ink-3-dark: #cbd5e1;
+
+  --ink-muted-light: #475569;
+  --ink-muted-dark: #94a3b8;
+
+  --ink-subtle-light: #64748b;
+  --ink-subtle-dark: #64748b;
+
+  /* WCAG AA contrast-safe accent tokens */
+  --accent-brand-light: #c2410c;
+  --accent-brand-dark: #fb923c;
+
+  --accent-emerald-light: #047857;
+  --accent-emerald-dark: #34d399;
+
+  --accent-amber-light: #b45309;
+  --accent-amber-dark: #fbbf24;
+
+  --accent-sky-light: #0369a1;
+  --accent-sky-dark: #38bdf8;
+
+  --accent-rose-light: #be123c;
+  --accent-rose-dark: #fb7185;
+
+  --accent-red-light: #b91c1c;
+  --accent-red-dark: #f87171;
+
+  --accent-blue-light: #1d4ed8;
+  --accent-blue-dark: #60a5fa;
+
+  --accent-purple-light: #7e22ce;
+  --accent-purple-dark: #c084fc;
+
+  /* Hero & Storefront accents */
+  --hero-from-light: #ea580c;
+  --hero-from-dark: #fb923c;
+  --hero-to-light: #d97706;
+  --hero-to-dark: #fcd34d;
+
+  --storefront-start-light: #fff7ed;
+  --storefront-start-dark: #7c2d12;
+
+  /* Tinted badges & status card tokens */
+  --tint-brand-bg-light: #fff7ed;
+  --tint-brand-bg-dark: rgb(249 115 22 / 0.14);
+  --tint-brand-border-light: #fed7aa;
+  --tint-brand-border-dark: rgb(249 115 22 / 0.32);
+
+  --tint-emerald-bg-light: #ecfdf5;
+  --tint-emerald-bg-dark: rgb(16 185 129 / 0.12);
+  --tint-emerald-border-light: #a7f3d0;
+  --tint-emerald-border-dark: rgb(16 185 129 / 0.32);
+
+  --tint-amber-bg-light: #fffbeb;
+  --tint-amber-bg-dark: rgb(245 158 11 / 0.12);
+  --tint-amber-border-light: #fde68a;
+  --tint-amber-border-dark: rgb(245 158 11 / 0.35);
+
+  --tint-sky-bg-light: #f0f9ff;
+  --tint-sky-bg-dark: rgb(14 165 233 / 0.12);
+  --tint-sky-border-light: #bae6fd;
+  --tint-sky-border-dark: rgb(14 165 233 / 0.32);
+
+  --tint-rose-bg-light: #fff1f2;
+  --tint-rose-bg-dark: rgb(244 63 94 / 0.12);
+  --tint-rose-border-light: #fecdd3;
+  --tint-rose-border-dark: rgb(244 63 94 / 0.35);
+
+  --tint-blue-bg-light: #eff6ff;
+  --tint-blue-bg-dark: rgb(59 130 246 / 0.12);
+  --tint-blue-border-light: #bfdbfe;
+  --tint-blue-border-dark: rgb(59 130 246 / 0.35);
+
+  --tint-purple-bg-light: #faf5ff;
+  --tint-purple-bg-dark: rgb(168 85 247 / 0.12);
+  --tint-purple-border-light: #e9d5ff;
+  --tint-purple-border-dark: rgb(168 85 247 / 0.35);
+
+  --scrollbar-track-light: #f1f5f9;
+  --scrollbar-track-dark: #0f172a;
+  --scrollbar-thumb-light: #94a3b8;
+  --scrollbar-thumb-dark: #475569;
+
+  /* Default light active tokens (fallback for browsers without light-dark()) */
+  --color-canvas: var(--canvas-light);
+  --color-panel: var(--panel-light);
+  --color-panel-glass: var(--panel-glass-light);
+  --color-well: var(--well-light);
+  --color-well-soft: var(--well-soft-light);
+  --color-control: var(--control-light);
+  --color-control-hover: var(--control-hover-light);
+  --color-row-hover: var(--row-hover-light);
+  --color-line: var(--line-light);
+  --color-line-strong: var(--line-strong-light);
+  --color-input-border: var(--input-border-light);
+  --color-backdrop: var(--backdrop-light);
+
+  --color-ink: var(--ink-light);
+  --color-ink-2: var(--ink-2-light);
+  --color-ink-3: var(--ink-3-light);
+  --color-ink-muted: var(--ink-muted-light);
+  --color-ink-subtle: var(--ink-subtle-light);
+
+  --accent-brand: var(--accent-brand-light);
+  --accent-emerald: var(--accent-emerald-light);
+  --accent-amber: var(--accent-amber-light);
+  --accent-sky: var(--accent-sky-light);
+  --accent-rose: var(--accent-rose-light);
+  --accent-red: var(--accent-red-light);
+  --accent-blue: var(--accent-blue-light);
+  --accent-purple: var(--accent-purple-light);
+
+  --hero-from: var(--hero-from-light);
+  --hero-to: var(--hero-to-light);
+  --storefront-start: var(--storefront-start-light);
+
+  --tint-brand-bg: var(--tint-brand-bg-light);
+  --tint-brand-border: var(--tint-brand-border-light);
+  --tint-emerald-bg: var(--tint-emerald-bg-light);
+  --tint-emerald-border: var(--tint-emerald-border-light);
+  --tint-amber-bg: var(--tint-amber-bg-light);
+  --tint-amber-border: var(--tint-amber-border-light);
+  --tint-sky-bg: var(--tint-sky-bg-light);
+  --tint-sky-border: var(--tint-sky-border-light);
+  --tint-rose-bg: var(--tint-rose-bg-light);
+  --tint-rose-border: var(--tint-rose-border-light);
+  --tint-blue-bg: var(--tint-blue-bg-light);
+  --tint-blue-border: var(--tint-blue-border-light);
+  --tint-purple-bg: var(--tint-purple-bg-light);
+  --tint-purple-border: var(--tint-purple-border-light);
+
+  --color-scrollbar-track: var(--scrollbar-track-light);
+  --color-scrollbar-thumb: var(--scrollbar-thumb-light);
+}
+
+/* Map <meta name="color-scheme"> back onto CSS color-scheme */
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  color-scheme: dark;
+}
+:root:has(> head > meta[name="color-scheme"][content="light"]) {
+  color-scheme: light;
+}
+
+/* Modern light-dark() automatic scheme resolution */
+@supports (color: light-dark(white, black)) {
+  :root {
+    --color-canvas: light-dark(var(--canvas-light), var(--canvas-dark));
+    --color-panel: light-dark(var(--panel-light), var(--panel-dark));
+    --color-panel-glass: light-dark(var(--panel-glass-light), var(--panel-glass-dark));
+    --color-well: light-dark(var(--well-light), var(--well-dark));
+    --color-well-soft: light-dark(var(--well-soft-light), var(--well-soft-dark));
+    --color-control: light-dark(var(--control-light), var(--control-dark));
+    --color-control-hover: light-dark(var(--control-hover-light), var(--control-hover-dark));
+    --color-row-hover: light-dark(var(--row-hover-light), var(--row-hover-dark));
+    --color-line: light-dark(var(--line-light), var(--line-dark));
+    --color-line-strong: light-dark(var(--line-strong-light), var(--line-strong-dark));
+    --color-input-border: light-dark(var(--input-border-light), var(--input-border-dark));
+    --color-backdrop: light-dark(var(--backdrop-light), var(--backdrop-dark));
+
+    --color-ink: light-dark(var(--ink-light), var(--ink-dark));
+    --color-ink-2: light-dark(var(--ink-2-light), var(--ink-2-dark));
+    --color-ink-3: light-dark(var(--ink-3-light), var(--ink-3-dark));
+    --color-ink-muted: light-dark(var(--ink-muted-light), var(--ink-muted-dark));
+    --color-ink-subtle: light-dark(var(--ink-subtle-light), var(--ink-subtle-dark));
+
+    --accent-brand: light-dark(var(--accent-brand-light), var(--accent-brand-dark));
+    --accent-emerald: light-dark(var(--accent-emerald-light), var(--accent-emerald-dark));
+    --accent-amber: light-dark(var(--accent-amber-light), var(--accent-amber-dark));
+    --accent-sky: light-dark(var(--accent-sky-light), var(--accent-sky-dark));
+    --accent-rose: light-dark(var(--accent-rose-light), var(--accent-rose-dark));
+    --accent-red: light-dark(var(--accent-red-light), var(--accent-red-dark));
+    --accent-blue: light-dark(var(--accent-blue-light), var(--accent-blue-dark));
+    --accent-purple: light-dark(var(--accent-purple-light), var(--accent-purple-dark));
+
+    --hero-from: light-dark(var(--hero-from-light), var(--hero-from-dark));
+    --hero-to: light-dark(var(--hero-to-light), var(--hero-to-dark));
+    --storefront-start: light-dark(var(--storefront-start-light), var(--storefront-start-dark));
+
+    --tint-brand-bg: light-dark(var(--tint-brand-bg-light), var(--tint-brand-bg-dark));
+    --tint-brand-border: light-dark(var(--tint-brand-border-light), var(--tint-brand-border-dark));
+    --tint-emerald-bg: light-dark(var(--tint-emerald-bg-light), var(--tint-emerald-bg-dark));
+    --tint-emerald-border: light-dark(var(--tint-emerald-border-light), var(--tint-emerald-border-dark));
+    --tint-amber-bg: light-dark(var(--tint-amber-bg-light), var(--tint-amber-bg-dark));
+    --tint-amber-border: light-dark(var(--tint-amber-border-light), var(--tint-amber-border-dark));
+    --tint-sky-bg: light-dark(var(--tint-sky-bg-light), var(--tint-sky-bg-dark));
+    --tint-sky-border: light-dark(var(--tint-sky-border-light), var(--tint-sky-border-dark));
+    --tint-rose-bg: light-dark(var(--tint-rose-bg-light), var(--tint-rose-bg-dark));
+    --tint-rose-border: light-dark(var(--tint-rose-border-light), var(--tint-rose-border-dark));
+    --tint-blue-bg: light-dark(var(--tint-blue-bg-light), var(--tint-blue-bg-dark));
+    --tint-blue-border: light-dark(var(--tint-blue-border-light), var(--tint-blue-border-dark));
+    --tint-purple-bg: light-dark(var(--tint-purple-bg-light), var(--tint-purple-bg-dark));
+    --tint-purple-border: light-dark(var(--tint-purple-border-light), var(--tint-purple-border-dark));
+
+    --color-scrollbar-track: light-dark(var(--scrollbar-track-light), var(--scrollbar-track-dark));
+    --color-scrollbar-thumb: light-dark(var(--scrollbar-thumb-light), var(--scrollbar-thumb-dark));
+  }
+}
+
+/* Fallback for browsers lacking light-dark() support */
+@supports not (color: light-dark(white, black)) {
+  @media (prefers-color-scheme: dark) {
+    :root:not(:has(> head > meta[name="color-scheme"][content="light"])) {
+      --color-canvas: var(--canvas-dark);
+      --color-panel: var(--panel-dark);
+      --color-panel-glass: var(--panel-glass-dark);
+      --color-well: var(--well-dark);
+      --color-well-soft: var(--well-soft-dark);
+      --color-control: var(--control-dark);
+      --color-control-hover: var(--control-hover-dark);
+      --color-row-hover: var(--row-hover-dark);
+      --color-line: var(--line-dark);
+      --color-line-strong: var(--line-strong-dark);
+      --color-input-border: var(--input-border-dark);
+      --color-backdrop: var(--backdrop-dark);
+      --color-ink: var(--ink-dark);
+      --color-ink-2: var(--ink-2-dark);
+      --color-ink-3: var(--ink-3-dark);
+      --color-ink-muted: var(--ink-muted-dark);
+      --color-ink-subtle: var(--ink-subtle-dark);
+      --accent-brand: var(--accent-brand-dark);
+      --accent-emerald: var(--accent-emerald-dark);
+      --accent-amber: var(--accent-amber-dark);
+      --accent-sky: var(--accent-sky-dark);
+      --accent-rose: var(--accent-rose-dark);
+      --accent-red: var(--accent-red-dark);
+      --accent-blue: var(--accent-blue-dark);
+      --accent-purple: var(--accent-purple-dark);
+      --hero-from: var(--hero-from-dark);
+      --hero-to: var(--hero-to-dark);
+      --storefront-start: var(--storefront-start-dark);
+      --tint-brand-bg: var(--tint-brand-bg-dark);
+      --tint-brand-border: var(--tint-brand-border-dark);
+      --tint-emerald-bg: var(--tint-emerald-bg-dark);
+      --tint-emerald-border: var(--tint-emerald-border-dark);
+      --tint-amber-bg: var(--tint-amber-bg-dark);
+      --tint-amber-border: var(--tint-amber-border-dark);
+      --tint-sky-bg: var(--tint-sky-bg-dark);
+      --tint-sky-border: var(--tint-sky-border-dark);
+      --tint-rose-bg: var(--tint-rose-bg-dark);
+      --tint-rose-border: var(--tint-rose-border-dark);
+      --tint-blue-bg: var(--tint-blue-bg-dark);
+      --tint-blue-border: var(--tint-blue-border-dark);
+      --tint-purple-bg: var(--tint-purple-bg-dark);
+      --tint-purple-border: var(--tint-purple-border-dark);
+      --color-scrollbar-track: var(--scrollbar-track-dark);
+      --color-scrollbar-thumb: var(--scrollbar-thumb-dark);
+    }
+  }
+
+  :root:has(> head > meta[name="color-scheme"][content="dark"]) {
+    --color-canvas: var(--canvas-dark);
+    --color-panel: var(--panel-dark);
+    --color-panel-glass: var(--panel-glass-dark);
+    --color-well: var(--well-dark);
+    --color-well-soft: var(--well-soft-dark);
+    --color-control: var(--control-dark);
+    --color-control-hover: var(--control-hover-dark);
+    --color-row-hover: var(--row-hover-dark);
+    --color-line: var(--line-dark);
+    --color-line-strong: var(--line-strong-dark);
+    --color-input-border: var(--input-border-dark);
+    --color-backdrop: var(--backdrop-dark);
+    --color-ink: var(--ink-dark);
+    --color-ink-2: var(--ink-2-dark);
+    --color-ink-3: var(--ink-3-dark);
+    --color-ink-muted: var(--ink-muted-dark);
+    --color-ink-subtle: var(--ink-subtle-dark);
+    --accent-brand: var(--accent-brand-dark);
+    --accent-emerald: var(--accent-emerald-dark);
+    --accent-amber: var(--accent-amber-dark);
+    --accent-sky: var(--accent-sky-dark);
+    --accent-rose: var(--accent-rose-dark);
+    --accent-red: var(--accent-red-dark);
+    --accent-blue: var(--accent-blue-dark);
+    --accent-purple: var(--accent-purple-dark);
+    --hero-from: var(--hero-from-dark);
+    --hero-to: var(--hero-to-dark);
+    --storefront-start: var(--storefront-start-dark);
+    --tint-brand-bg: var(--tint-brand-bg-dark);
+    --tint-brand-border: var(--tint-brand-border-dark);
+    --tint-emerald-bg: var(--tint-emerald-bg-dark);
+    --tint-emerald-border: var(--tint-emerald-border-dark);
+    --tint-amber-bg: var(--tint-amber-bg-dark);
+    --tint-amber-border: var(--tint-amber-border-dark);
+    --tint-sky-bg: var(--tint-sky-bg-dark);
+    --tint-sky-border: var(--tint-sky-border-dark);
+    --tint-rose-bg: var(--tint-rose-bg-dark);
+    --tint-rose-border: var(--tint-rose-border-dark);
+    --tint-blue-bg: var(--tint-blue-bg-dark);
+    --tint-blue-border: var(--tint-blue-border-dark);
+    --tint-purple-bg: var(--tint-purple-bg-dark);
+    --tint-purple-border: var(--tint-purple-border-dark);
+    --color-scrollbar-track: var(--scrollbar-track-dark);
+    --color-scrollbar-thumb: var(--scrollbar-thumb-dark);
+  }
+}
+
+/* Windows Forced Colors (High Contrast) support */
+@media (forced-colors: active) {
+  :root {
+    --color-canvas: Canvas;
+    --color-panel: Canvas;
+    --color-panel-glass: Canvas;
+    --color-well: Canvas;
+    --color-well-soft: Canvas;
+    --color-control: ButtonFace;
+    --color-control-hover: Highlight;
+    --color-line: ButtonBorder;
+    --color-line-strong: ButtonBorder;
+    --color-input-border: ButtonBorder;
+    --color-ink: CanvasText;
+    --color-ink-2: CanvasText;
+    --color-ink-3: CanvasText;
+    --color-ink-muted: GrayText;
+    --color-ink-subtle: GrayText;
+    --accent-brand: LinkText;
+    --accent-emerald: CanvasText;
+    --accent-amber: CanvasText;
+    --accent-sky: LinkText;
+    --accent-rose: LinkText;
+  }
+}
+
+/* Native UI accent & scrollbar configuration */
+html {
+  accent-color: var(--accent-brand);
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+  scrollbar-width: thin;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-2);
+    @apply antialiased selection:bg-brand-500 selection:text-white;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Legacy scrollbar fallback strictly for browsers lacking scrollbar-color */
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    border-radius: 9999px;
+  }
+}
+
+/* CSS-driven active state visibility for theme toggle (no JS needed after load) */
+.theme-when-dark {
+  display: none;
+}
+.theme-when-light {
+  display: inline-flex;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme-when-dark {
+    display: inline-flex;
+  }
+  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .theme-when-light {
+    display: none;
+  }
+}
+
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme-when-dark {
+  display: inline-flex;
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) .theme-when-light {
+  display: none;
+}
+
+/* Visual touch action for POS */
+.pos-touch-card:active {
+  transform: scale(0.97);
+}
+
+/* Native <dialog> top-layer scroll containment per modern-web-guidance */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background: var(--color-backdrop);
+  backdrop-filter: blur(4px);
+}
