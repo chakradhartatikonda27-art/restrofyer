@@ -59,7 +59,16 @@ def test_spice_symphony_full_operational_seed_end_to_end(client, db, seed_two_te
 
     items_res = client.get("/api/v1/menus/items", headers=headers)
     assert items_res.status_code == 200
-    first_item_id = items_res.json()[0]["id"]
+    items_json = items_res.json()
+    assert len(items_json) == 30
+    assert len({it["image_url"] for it in items_json if it.get("image_url")}) == 30
+    by_name = {it["name"]: it for it in items_json}
+    assert by_name["Idli (2 Pcs)"]["image_url"] == "/images/dishes/idli.jpg"
+    assert by_name["Paneer Tikka"]["image_url"] == "/images/dishes/paneer-tikka.jpg"
+    assert by_name["Butter Naan"]["image_url"] == "/images/dishes/butter-naan.jpg"
+    assert by_name["Madras Filter Coffee"]["image_url"] == "/images/dishes/filter-coffee.jpg"
+
+    first_item_id = items_json[0]["id"]
     first_recipe = client.get(f"/api/v1/recipes/{first_item_id}", headers=headers)
     assert first_recipe.status_code == 200
     assert len(first_recipe.json()["items"]) >= 1

@@ -2,19 +2,41 @@
 
 import { useEffect, useState } from "react";
 import { Utensils } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 import type { FoodType } from "./MenuTypes";
 
 export const DISH_PHOTO_PRESETS: { label: string; url: string }[] = [
-  { label: "Masala Dosa", url: "/images/dishes/masala-dosa.jpg" },
+  { label: "Steamed Idli", url: "/images/dishes/idli.jpg" },
   { label: "Idli & Vada", url: "/images/dishes/idli-vada.jpg" },
+  { label: "Ghee Karam Dosa", url: "/images/dishes/ghee-karam-dosa.jpg" },
+  { label: "Pesarattu Upma", url: "/images/dishes/pesarattu-upma.jpg" },
+  { label: "Masala Dosa", url: "/images/dishes/masala-dosa.jpg" },
   { label: "Chicken 65", url: "/images/dishes/chicken-65.jpg" },
+  { label: "Gobi 65", url: "/images/dishes/gobi-65.jpg" },
   { label: "Paneer Tikka", url: "/images/dishes/paneer-tikka.jpg" },
-  { label: "Curries & Gravy", url: "/images/dishes/paneer-butter-masala.jpg" },
-  { label: "Dum Biryani", url: "/images/dishes/chicken-biryani.jpg" },
-  { label: "Thali Meals", url: "/images/dishes/south-indian-meals.jpg" },
+  { label: "Chicken Tikka", url: "/images/dishes/chicken-tikka.jpg" },
+  { label: "Veg Manchurian", url: "/images/dishes/veg-manchurian.jpg" },
+  { label: "Egg Pakoda", url: "/images/dishes/egg-pakoda.jpg" },
+  { label: "Gutti Vankaya", url: "/images/dishes/gutti-vankaya.jpg" },
+  { label: "Pappu Charu", url: "/images/dishes/pappu-charu.jpg" },
+  { label: "Baghara Baingan", url: "/images/dishes/baghara-baingan.jpg" },
+  { label: "Paneer Masala", url: "/images/dishes/paneer-butter-masala.jpg" },
+  { label: "Butter Chicken", url: "/images/dishes/butter-chicken.jpg" },
+  { label: "Andhra Chicken", url: "/images/dishes/andhra-chicken-curry.jpg" },
+  { label: "Gongura Mutton", url: "/images/dishes/gongura-mutton.jpg" },
+  { label: "Dal Tadka", url: "/images/dishes/dal-tadka.jpg" },
+  { label: "Chole Masala", url: "/images/dishes/chole-masala.jpg" },
   { label: "Egg Curry", url: "/images/dishes/egg-curry.jpg" },
-  { label: "Samosa & Chaat", url: "/images/dishes/samosa-snacks.jpg" },
-  { label: "Dessert & Coffee", url: "/images/dishes/gulab-jamun-coffee.jpg" },
+  { label: "Butter Naan", url: "/images/dishes/butter-naan.jpg" },
+  { label: "Tandoori Roti", url: "/images/dishes/tandoori-roti.jpg" },
+  { label: "Dum Biryani", url: "/images/dishes/chicken-biryani.jpg" },
+  { label: "Veg Biryani", url: "/images/dishes/veg-biryani.jpg" },
+  { label: "Biryani Combo", url: "/images/dishes/biryani-combo.jpg" },
+  { label: "Andhra Meals", url: "/images/dishes/south-indian-meals.jpg" },
+  { label: "North Thali", url: "/images/dishes/north-indian-thali.jpg" },
+  { label: "Samosa Snacks", url: "/images/dishes/samosa-snacks.jpg" },
+  { label: "Gulab Jamun", url: "/images/dishes/gulab-jamun.jpg" },
+  { label: "Filter Coffee", url: "/images/dishes/filter-coffee.jpg" },
 ];
 
 export function resolveFoodType(foodType?: FoodType | string | null, isVeg?: boolean): FoodType {
@@ -83,7 +105,7 @@ export function DietaryBadge({
     return (
       <span
         title={meta.label}
-        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border whitespace-nowrap ${meta.pillClass}`}
+        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border whitespace-nowrap bg-panel/95 backdrop-blur-sm shadow-sm ${meta.pillClass}`}
       >
         <span className={`inline-flex items-center justify-center w-3 h-3 rounded-[2px] border shrink-0 bg-panel ${meta.border}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
@@ -103,6 +125,16 @@ export function DietaryBadge({
   );
 }
 
+const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
+
+export function resolveDishImageUrl(imageUrl?: string | null): string | null {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith("/uploads/")) {
+    return `${BACKEND_ORIGIN}${imageUrl}`;
+  }
+  return imageUrl;
+}
+
 /**
  * Resilient dish photo container with graceful fallback to kitchen utensil icon.
  */
@@ -116,15 +148,16 @@ export function DishThumbnail({
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const resolvedSrc = resolveDishImageUrl(imageUrl);
 
   useEffect(() => {
     setFailed(false);
-  }, [imageUrl]);
+  }, [resolvedSrc]);
 
-  if (imageUrl && !failed) {
+  if (resolvedSrc && !failed) {
     return (
       <img
-        src={imageUrl}
+        src={resolvedSrc}
         alt={name}
         onError={() => setFailed(true)}
         className={`${className} object-cover border border-line shrink-0 bg-well`}

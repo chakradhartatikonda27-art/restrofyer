@@ -930,7 +930,7 @@ def seed_spice_symphony_menus(db: Session, tenant_id: str, branch_id: str):
             it.kitchen_station_id = station.id if station else it.kitchen_station_id
             it.spice_levels = spices
             it.order_channels = ["DineIn", "Takeaway", "Delivery", "QR"]
-            if not it.image_url or it.image_url.endswith(".png"):
+            if not it.image_url or it.image_url.startswith("/images/dishes/") or it.image_url.endswith(".png"):
                 it.image_url = resolve_default_indian_dish_image(name, cat_name)
             created_or_updated[name] = it
         else:
@@ -1004,6 +1004,10 @@ def seed_spice_symphony_menus(db: Session, tenant_id: str, branch_id: str):
 
     # Combo Meal: Hyderabad Biryani Combo
     combo_name = "Hyderabad Biryani Combo"
+    if combo_name in existing_items:
+        combo_existing = existing_items[combo_name]
+        if not combo_existing.image_url or combo_existing.image_url.startswith("/images/dishes/"):
+            combo_existing.image_url = resolve_default_indian_dish_image(combo_name, "Combos")
     if combo_name not in existing_items and biryani_item and "Chicken 65" in created_or_updated:
         combo_cat = cat_map.get("Combos / Special Meals") or fallback_cat
         combo_menu = menu_map.get("All-Day Menu")
@@ -1017,7 +1021,7 @@ def seed_spice_symphony_menus(db: Session, tenant_id: str, branch_id: str):
             food_type="NON_VEG",
             name=combo_name,
             description="1x Hyderabadi Chicken Dum Biryani + 1x Chicken 65 (Half) + 1x Gulab Jamun.",
-            image_url="/images/dishes/chicken-biryani.jpg",
+            image_url=resolve_default_indian_dish_image(combo_name, "Combos"),
             base_price=Decimal("499.00"),
             cost_price=Decimal("180.00"),
             tax_rate=Decimal("5.00"),

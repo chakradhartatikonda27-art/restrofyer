@@ -84,27 +84,65 @@ SAMPLE_INDIAN_CATALOG: List[Tuple[str, str, str, str, str, str, str, str]] = [
 ]
 
 
+_DISH_IMAGE_RULES: List[Tuple[Tuple[str, ...], str]] = [
+    (("biryani combo",), "/images/dishes/biryani-combo.jpg"),
+    (("idli",), "/images/dishes/idli.jpg"),
+    (("pesarattu",), "/images/dishes/pesarattu-upma.jpg"),
+    (("ghee karam dosa", "karam dosa"), "/images/dishes/ghee-karam-dosa.jpg"),
+    (("dosa", "uttapam"), "/images/dishes/masala-dosa.jpg"),
+    (("medu vada", "vada", "pongal", "upma"), "/images/dishes/idli-vada.jpg"),
+    (("gobi 65", "cauliflower"), "/images/dishes/gobi-65.jpg"),
+    (("manchurian",), "/images/dishes/veg-manchurian.jpg"),
+    (("paneer tikka",), "/images/dishes/paneer-tikka.jpg"),
+    (("chicken tikka",), "/images/dishes/chicken-tikka.jpg"),
+    (("chicken 65", "apollo fish", "fish fry", "kebab"), "/images/dishes/chicken-65.jpg"),
+    (("egg pakoda", "egg bonda", "pakoda", "pakora"), "/images/dishes/egg-pakoda.jpg"),
+    (("gutti vankaya",), "/images/dishes/gutti-vankaya.jpg"),
+    (("pappu charu", "rasam", "sambar"), "/images/dishes/pappu-charu.jpg"),
+    (("baghara baingan", "baingan"), "/images/dishes/baghara-baingan.jpg"),
+    (("dal tadka", "dal fry", "dal makhani", "pappu"), "/images/dishes/dal-tadka.jpg"),
+    (("chole", "chana"), "/images/dishes/chole-masala.jpg"),
+    (("butter chicken",), "/images/dishes/butter-chicken.jpg"),
+    (("andhra kodi", "chicken curry", "kodi kura"), "/images/dishes/andhra-chicken-curry.jpg"),
+    (("gongura mutton", "mutton", "keema"), "/images/dishes/gongura-mutton.jpg"),
+    (("egg curry", "egg roast", "egg masala", "omelette"), "/images/dishes/egg-curry.jpg"),
+    (("paneer",), "/images/dishes/paneer-butter-masala.jpg"),
+    (("butter naan", "naan", "kulcha"), "/images/dishes/butter-naan.jpg"),
+    (("tandoori roti", "roti", "paratha", "chapati", "phulka"), "/images/dishes/tandoori-roti.jpg"),
+    (("veg biryani", "vegetable biryani", "paneer biryani", "pulao", "jeera rice", "steamed rice"), "/images/dishes/veg-biryani.jpg"),
+    (("biryani", "dum biryani"), "/images/dishes/chicken-biryani.jpg"),
+    (("north indian thali", "north thali"), "/images/dishes/north-indian-thali.jpg"),
+    (("andhra meals", "south indian meals", "meals", "thali"), "/images/dishes/south-indian-meals.jpg"),
+    (("samosa", "chaat", "bhel", "pav bhaji"), "/images/dishes/samosa-snacks.jpg"),
+    (("gulab jamun", "double ka meetha", "payasam", "halwa", "kheer"), "/images/dishes/gulab-jamun.jpg"),
+    (("filter coffee", "coffee", "chai", "tea", "lassi", "buttermilk"), "/images/dishes/filter-coffee.jpg"),
+]
+
+_CATEGORY_IMAGE_FALLBACKS: List[Tuple[Tuple[str, ...], str]] = [
+    (("combo",), "/images/dishes/biryani-combo.jpg"),
+    (("dosa", "idli", "tiffin", "breakfast"), "/images/dishes/masala-dosa.jpg"),
+    (("bread", "roti", "naan"), "/images/dishes/butter-naan.jpg"),
+    (("biryani", "rice"), "/images/dishes/chicken-biryani.jpg"),
+    (("meal", "thali"), "/images/dishes/south-indian-meals.jpg"),
+    (("starter", "kebab", "soup"), "/images/dishes/paneer-tikka.jpg"),
+    (("snack", "chaat"), "/images/dishes/samosa-snacks.jpg"),
+    (("dessert", "sweet"), "/images/dishes/gulab-jamun.jpg"),
+    (("beverage", "drink"), "/images/dishes/filter-coffee.jpg"),
+]
+
+
 def resolve_default_indian_dish_image(dish_name: str, category_name: str = "") -> str:
-    """Maps an Indian dish name/category to a curated local studio dish photo."""
-    lower = f"{dish_name} {category_name}".lower()
-    if any(k in lower for k in ["dosa", "pesarattu", "uttapam"]):
-        return "/images/dishes/masala-dosa.jpg"
-    if any(k in lower for k in ["idli", "vada", "upma", "pongal"]):
-        return "/images/dishes/idli-vada.jpg"
-    if any(k in lower for k in ["egg", "omelette"]):
-        return "/images/dishes/egg-curry.jpg"
-    if any(k in lower for k in ["chicken 65", "chicken tikka", "fish fry", "apollo fish", "kebab"]):
-        return "/images/dishes/chicken-65.jpg"
-    if any(k in lower for k in ["paneer tikka", "gobi 65", "manchurian", "naan", "roti", "paratha", "breads"]):
-        return "/images/dishes/paneer-tikka.jpg"
-    if any(k in lower for k in ["biryani", "rice", "pulao", "combo"]):
-        return "/images/dishes/chicken-biryani.jpg"
-    if any(k in lower for k in ["meals", "thali"]):
-        return "/images/dishes/south-indian-meals.jpg"
-    if any(k in lower for k in ["samosa", "pakoda", "chaat", "snack"]):
-        return "/images/dishes/samosa-snacks.jpg"
-    if any(k in lower for k in ["gulab jamun", "coffee", "chai", "tea", "dessert", "beverage"]):
-        return "/images/dishes/gulab-jamun-coffee.jpg"
+    """Maps an Indian dish name (with category fallback) to a curated studio dish photo."""
+    name_low = (dish_name or "").lower()
+    for keywords, photo_path in _DISH_IMAGE_RULES:
+        if any(k in name_low for k in keywords):
+            return photo_path
+
+    cat_low = (category_name or "").lower()
+    for keywords, photo_path in _CATEGORY_IMAGE_FALLBACKS:
+        if any(k in cat_low for k in keywords):
+            return photo_path
+
     return "/images/dishes/paneer-butter-masala.jpg"
 
 

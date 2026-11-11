@@ -52,7 +52,10 @@ from app.schemas.menu import (
     BulkUploadItemsRequest,
     TemplateApplyRequest,
 )
-from app.services.menu_template_service import apply_indian_menu_template
+from app.services.menu_template_service import (
+    apply_indian_menu_template,
+    resolve_default_indian_dish_image,
+)
 
 router = APIRouter()
 
@@ -953,6 +956,7 @@ def bulk_upload_menu_items(
             db.flush()
 
         ftype, veg_flag = _normalize_food_type(row.food_type, row.is_veg)
+        item_name = row.name.strip()
         item = MenuItem(
             id=str(uuid.uuid4()),
             tenant_id=current_user.tenant_id,
@@ -960,8 +964,9 @@ def bulk_upload_menu_items(
             menu_id=resolved_menu_id,
             cuisine_id=resolved_cuisine_id,
             category_id=cat_obj.id,
-            name=row.name.strip(),
+            name=item_name,
             description=row.description,
+            image_url=resolve_default_indian_dish_image(item_name, cat_name),
             base_price=row.base_price,
             cost_price=row.cost_price,
             tax_rate=row.tax_rate,
@@ -1158,6 +1163,10 @@ def create_menu_item(
 
     ftype, veg_flag = _normalize_food_type(data.food_type, data.is_veg)
     resolved_branch_id = None if data.all_branches else (data.branch_id if data.branch_id is not None else branch_id)
+    resolved_image_url = (
+        (data.image_url or "").strip()
+        or resolve_default_indian_dish_image(data.name.strip(), cat.name)
+    )
 
     item = MenuItem(
         id=str(uuid.uuid4()),
@@ -1169,7 +1178,7 @@ def create_menu_item(
         name=data.name.strip(),
         sku=data.sku,
         description=data.description,
-        image_url=data.image_url,
+        image_url=resolved_image_url,
         base_price=data.base_price,
         cost_price=data.cost_price,
         tax_rate=data.tax_rate,
